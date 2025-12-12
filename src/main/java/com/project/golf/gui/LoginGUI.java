@@ -1,6 +1,7 @@
 package com.project.golf.gui;
 
 import com.project.golf.client.*;
+import com.project.golf.utils.ServerConfig;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -30,10 +31,9 @@ public class LoginGUI extends JFrame implements ActionListener {
     private static Client client;                  // client connection to server
     private String currUsername;                   // username of currently authenticating user
 
-    private final String serverHost = "localhost";  // set to local host to run server client both locally by default
-    // private final String serverHost = "serverIPgoesHere"; // to run server remotely, set to server IP
-
-    private final int serverPort = 5050;               // server port number
+    // Server configuration loaded from properties file for dynamic IP support
+    private final String serverHost;
+    private final int serverPort;
 
     private JButton loginButton;
     private JButton signupButton;
@@ -45,9 +45,13 @@ public class LoginGUI extends JFrame implements ActionListener {
     private String oneTimeCodeUsername = null;
 
     public LoginGUI() {
+        // Load server configuration
+        this.serverHost = ServerConfig.getServerHost();
+        this.serverPort = ServerConfig.getServerPort();
+        
         setTitle("Golf Course Reservation System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 400);
+        setSize(700, 500);  // Increased from 600x400 for better accessibility
         setLocationRelativeTo(null);
 
         BackgroundPanel panel = new BackgroundPanel();
@@ -62,22 +66,24 @@ public class LoginGUI extends JFrame implements ActionListener {
 
         panel.add(Box.createVerticalStrut(10));
 
-        JLabel usernameText = new JLabel("Username:");
-        usernameField = new JTextField(16);
-        usernameField.setMaximumSize(new Dimension(250, usernameField.getPreferredSize().height * 2));
-        usernameField.setMinimumSize(new Dimension(25, usernameField.getPreferredSize().height));
+        JLabel usernameText = new JLabel("Username or Email:");
+        usernameField = new JTextField(20);  // Increased from 16
+        usernameField.setMaximumSize(new Dimension(300, usernameField.getPreferredSize().height * 2));  // Increased from 250
+        usernameField.setMinimumSize(new Dimension(200, usernameField.getPreferredSize().height));
         usernameText.setAlignmentX(CENTER_ALIGNMENT);
         usernameText.setForeground(Color.WHITE);
+        usernameText.setFont(new Font("Arial", Font.PLAIN, 14));
         usernameField.setAlignmentX(CENTER_ALIGNMENT);
         panel.add(usernameText);
         panel.add(usernameField);
 
         JLabel passwordText = new JLabel("Password:");
-        passwordField = new JPasswordField(16);
-        passwordField.setMaximumSize(new Dimension(250, usernameField.getPreferredSize().height * 2));
-        passwordField.setMinimumSize(new Dimension(25, usernameField.getPreferredSize().height));
+        passwordField = new JPasswordField(20);  // Increased from 16
+        passwordField.setMaximumSize(new Dimension(300, usernameField.getPreferredSize().height * 2));  // Increased from 250
+        passwordField.setMinimumSize(new Dimension(200, usernameField.getPreferredSize().height));
         passwordText.setAlignmentX(CENTER_ALIGNMENT);
         passwordText.setForeground(Color.WHITE);
+        passwordText.setFont(new Font("Arial", Font.PLAIN, 14));
         passwordField.setAlignmentX(CENTER_ALIGNMENT);
         panel.add(passwordText);
         panel.add(passwordField);
@@ -150,12 +156,15 @@ public class LoginGUI extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
-        client = new Client("localhost", 5050); // set to local host to run server client both locally by default
-        // client = new Client("serverIPgoesHere", 5050); // to run server remotely, set to server IP
+        // Load server configuration dynamically
+        String host = ServerConfig.getServerHost();
+        int port = ServerConfig.getServerPort();
+        
+        client = new Client(host, port);
         try {
-            client.connect("localhost", 5050); // set to local host to run server client both locally by default
-            // client.connect("serverIPgoesHere", 5050); // to run server remotely, set to server IP
+            client.connect(host, port);
         } catch (Exception e) {
+            System.err.println("Failed to connect to server at " + host + ":" + port);
         }
 
         SwingUtilities.invokeLater(() -> new LoginGUI());

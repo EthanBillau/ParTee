@@ -30,6 +30,7 @@ public class MainMenuGUI extends JFrame implements ActionListener {
     private JButton manageReservationButton;  // button to navigate to manage reservations screen
     private JButton accountOptionsButton;  // button to navigate to account options screen
     private JButton chatBotButton;  // button to open AI chatbot assistant
+    private JButton logoutButton;  // button to logout and return to login screen
     private String username;  // currently logged-in username
     private Client client;  // client connection for server communication
 
@@ -38,7 +39,7 @@ public class MainMenuGUI extends JFrame implements ActionListener {
         this.client = client;
         setTitle("Golf Course Reservation System - Main Menu");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 400);
+        setSize(700, 550);  // Increased from 600x400 for better accessibility
         setLocationRelativeTo(null);
 
         showMainMenu();
@@ -116,6 +117,19 @@ public class MainMenuGUI extends JFrame implements ActionListener {
         chatBotButton.setForeground(Color.WHITE);
         chatBotButton.addActionListener(this);
         panel.add(chatBotButton);
+        
+        panel.add(Box.createVerticalStrut(30));
+        
+        // Logout Button
+        logoutButton = new JButton("Logout");
+        logoutButton.setAlignmentX(CENTER_ALIGNMENT);
+        logoutButton.setMinimumSize(new Dimension(250, 45));
+        logoutButton.setMaximumSize(new Dimension(250, 45));
+        logoutButton.setFont(new Font("Arial", Font.PLAIN, 14));
+        logoutButton.setBackground(new Color(220, 53, 69));  // Red color for logout
+        logoutButton.setForeground(Color.WHITE);
+        logoutButton.addActionListener(this);
+        panel.add(logoutButton);
 
         setContentPane(panel);
         setVisible(true);
@@ -138,6 +152,36 @@ public class MainMenuGUI extends JFrame implements ActionListener {
         } else if (e.getSource() == chatBotButton) {
             System.out.println("AI Assistant button clicked");
             openChatBotWindow();
+        } else if (e.getSource() == logoutButton) {
+            System.out.println("Logout button clicked");
+            handleLogout();
+        }
+    }
+    
+    /**
+     * Handle logout action
+     * Disconnects from server and returns to login screen
+     */
+    private void handleLogout() {
+        int confirm = JOptionPane.showConfirmDialog(this,
+            "Are you sure you want to logout?",
+            "Confirm Logout",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE);
+        
+        if (confirm == JOptionPane.YES_OPTION) {
+            // Disconnect client if available
+            if (client != null) {
+                try {
+                    client.disconnect();
+                } catch (Exception ex) {
+                    System.err.println("Error disconnecting client: " + ex.getMessage());
+                }
+            }
+            
+            // Close current window and return to login
+            this.dispose();
+            SwingUtilities.invokeLater(() -> new LoginGUI());
         }
     }
 

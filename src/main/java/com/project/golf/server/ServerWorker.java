@@ -3,6 +3,7 @@ package com.project.golf.server;
 import com.project.golf.database.*;
 import com.project.golf.events.*;
 import com.project.golf.reservation.*;
+import com.project.golf.utils.PasswordUtil;
 
 import java.io.*;
 import java.net.Socket;
@@ -183,7 +184,7 @@ public class ServerWorker implements Runnable {
 
     /**
      * Handles ADD_USER command: creates new user account
-     * Validates username is unique and creates user if valid
+     * Validates username and email are unique, hashes password, and creates user if valid
      * 
      * Protocol: ADD_USER|username|password|first|last|email|hasPaid
      * Response: RESP|OK|... if created, RESP|ERROR|... if failed
@@ -203,7 +204,21 @@ public class ServerWorker implements Runnable {
         boolean hasPaid = Boolean.parseBoolean(parts[6]);
 
         Database db = Database.getInstance();
-        boolean added = db.addUser(new com.project.golf.users.User(username, password, first, last, email, hasPaid));
+        
+        // Check if username already exists
+        if (db.findUser(username) != null) {
+            return "RESP|ERROR|Username already exists";
+        }
+        
+        // Check if email already exists
+        if (db.findUserByEmail(email) != null) {
+            return "RESP|ERROR|Email already in use";
+        }
+        
+        // Hash the password before storing
+        String hashedPassword = PasswordUtil.hashPassword(password);
+        
+        boolean added = db.addUser(new com.project.golf.users.User(username, hashedPassword, first, last, email, hasPaid));
         if (added) {
             try {
                 db.saveToFile();
@@ -212,7 +227,7 @@ public class ServerWorker implements Runnable {
             }
             return "RESP|OK|User added";
         } else {
-            return "RESP|ERROR|Could not add user (username may exist)";
+            return "RESP|ERROR|Could not add user";
         }
     }
     
