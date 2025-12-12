@@ -4,6 +4,7 @@ import com.project.golf.events.*;
 import com.project.golf.reservation.*;
 import com.project.golf.settings.*;
 import com.project.golf.users.*;
+import com.project.golf.utils.PasswordUtil;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -126,6 +127,12 @@ public class Database implements DatabaseInterface {
                     return false;
                 }
             }
+            // Check if email already exists
+            for (User u : users) {
+                if (user.getEmail() != null && user.getEmail().equalsIgnoreCase(u.getEmail())) {
+                    return false;
+                }
+            }
             users.add(user);
             return true;
         } finally {
@@ -191,6 +198,32 @@ public class Database implements DatabaseInterface {
     }
     
     /**
+     * Finds a user by email
+     * thread safe ops using read lock
+     * 
+     * @param email the email to search for
+     * @return the User object if found,
+     *         null otherwise
+     */
+    public User findUserByEmail(String email) {
+        if (email == null) {
+            return null;
+        }
+        
+        readLock.lock();
+        try {
+            for (User u : users) {
+                if (email.equalsIgnoreCase(u.getEmail())) {
+                    return u;
+                }
+            }
+            return null;
+        } finally {
+            readLock.unlock();
+        }
+    }
+    
+    /**
      * Gets all users in the database
      * Thread safe ops using read lock
      * Returns a copy to prevent external modification
@@ -211,23 +244,41 @@ public class Database implements DatabaseInterface {
     /**
      * Validates user login credentials
      * Thread safe ops using read lock
+     * Supports login with username or email
      * 
-     * @param username the username
-     * @param password the password
+     * @param usernameOrEmail the username or email
+     * @param password the password (plaintext)
      * @return true if credentials are valid,
      *         false otherwise
      */
     
     @Override
-    public boolean validateLogin(String username, String password) {
-        if (username == null || password == null) {
+    public boolean validateLogin(String usernameOrEmail, String password) {
+        if (usernameOrEmail == null || password == null) {
             return false;
         }
         
         readLock.lock();
         try {
-            User user = findUser(username);
-            return user != null && user.getPassword().equals(password);
+            // Try to find user by username first, then by email
+            User user = findUser(usernameOrEmail);
+            if (user == null) {
+                user = findUserByEmail(usernameOrEmail);
+            }
+            
+            if (user == null) {
+                return false;
+            }
+            
+            String storedPassword = user.getPassword();
+            
+            // Check if stored password is hashed (BCrypt)
+            if (PasswordUtil.isHashed(storedPassword)) {
+                return PasswordUtil.verifyPassword(password, storedPassword);
+            } else {
+                // Legacy plaintext password support
+                return storedPassword.equals(password);
+            }
         } finally {
             readLock.unlock();
         }

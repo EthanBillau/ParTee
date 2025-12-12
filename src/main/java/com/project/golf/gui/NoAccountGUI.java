@@ -1,6 +1,8 @@
 package com.project.golf.gui;
 
+import com.project.golf.client.Client;
 import com.project.golf.utils.EmailSender;
+import com.project.golf.utils.ServerConfig;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -29,24 +31,43 @@ import javax.swing.*;
 public class NoAccountGUI extends JFrame implements ActionListener {
 
     private JButton showLoginButton;  // button to return to login screen
-    private JButton submitEmailButton;  // button to submit account request
-    private JTextField emailField;  // input field for requesting user email
+    private JButton createAccountButton;  // button to create new account
+    
+    // Form fields for account creation
+    private JTextField usernameField;
+    private JPasswordField passwordField;
+    private JPasswordField confirmPasswordField;
+    private JTextField firstNameField;
+    private JTextField lastNameField;
+    private JTextField emailField;
+    
+    private Client client;
 
     public NoAccountGUI() {
-        setTitle("Golf Course Reservation System");
+        setTitle("Golf Course Reservation System - Sign Up");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 400);
+        setSize(700, 650);  // Increased size for signup form
         setLocationRelativeTo(null);
+        
+        // Initialize client connection
+        String host = ServerConfig.getServerHost();
+        int port = ServerConfig.getServerPort();
+        client = new Client(host, port);
+        try {
+            client.connect(host, port);
+        } catch (Exception e) {
+            System.err.println("Failed to connect to server: " + e.getMessage());
+        }
 
-        showNoLoginScreen();
+        showSignupScreen();
     }
 
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == showLoginButton) {
             switchToLoginGUI();
-        } else if (e.getSource() == submitEmailButton) {
-            handleEmailSubmission();
+        } else if (e.getSource() == createAccountButton) {
+            handleAccountCreation();
         }
     }
 
@@ -59,127 +80,219 @@ public class NoAccountGUI extends JFrame implements ActionListener {
         SwingUtilities.invokeLater(() -> new LoginGUI());
     }
 
-    private void handleEmailSubmission() {
+    /**
+     * Handle account creation
+     * Validates form inputs and creates new user account
+     */
+    private void handleAccountCreation() {
+        // Get form values
+        String username = usernameField.getText().trim();
+        String password = new String(passwordField.getPassword());
+        String confirmPassword = new String(confirmPasswordField.getPassword());
+        String firstName = firstNameField.getText().trim();
+        String lastName = lastNameField.getText().trim();
         String email = emailField.getText().trim();
         
-        /**
-         * Basic email validation.
-         * Check if field is not empty and contains @ symbol.
-         */
-        if (email.isEmpty()) {
+        // Validate inputs
+        if (username.isEmpty() || password.isEmpty() || firstName.isEmpty() || 
+            lastName.isEmpty() || email.isEmpty()) {
             JOptionPane.showMessageDialog(this,
-                "Please enter your email address.",
-                "Email Required",
+                "All fields are required.",
+                "Validation Error",
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
         
+        // Validate username length
+        if (username.length() < 3) {
+            JOptionPane.showMessageDialog(this,
+                "Username must be at least 3 characters.",
+                "Validation Error",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Validate password length
+        if (password.length() < 6) {
+            JOptionPane.showMessageDialog(this,
+                "Password must be at least 6 characters.",
+                "Validation Error",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Validate password match
+        if (!password.equals(confirmPassword)) {
+            JOptionPane.showMessageDialog(this,
+                "Passwords do not match.",
+                "Validation Error",
+                JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        // Validate email format
         if (!email.contains("@") || !email.contains(".")) {
             JOptionPane.showMessageDialog(this,
                 "Please enter a valid email address.",
-                "Invalid Email",
+                "Validation Error",
                 JOptionPane.WARNING_MESSAGE);
             return;
         }
         
-        /**
-         * Send email in a background thread to prevent UI freezing.
-         * Shows a "Sending..." message while the email is being sent.
-         */
-        submitEmailButton.setEnabled(false);
-        submitEmailButton.setText("Sending...");
+        // Create account
+        createAccountButton.setEnabled(false);
+        createAccountButton.setText("Creating...");
         
         new Thread(() -> {
-            boolean success = EmailSender.sendHelloWorldEmail(email);
-            
-            /**
-             * Update UI on the Event Dispatch Thread after email attempt.
-             * Shows success or failure message based on email send result.
-             */
-            SwingUtilities.invokeLater(() -> {
-                submitEmailButton.setEnabled(true);
-                submitEmailButton.setText("Submit Email");
+            try {
+                boolean success = client.addUser(username, password, firstName, lastName, email, false);
                 
-                if (success) {
+                SwingUtilities.invokeLater(() -> {
+                    createAccountButton.setEnabled(true);
+                    createAccountButton.setText("Create Account");
+                    
+                    if (success) {
+                        JOptionPane.showMessageDialog(this,
+                            "Account created successfully! You can now log in.",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                        switchToLoginGUI();
+                    } else {
+                        JOptionPane.showMessageDialog(this,
+                            "Failed to create account. Username or email may already exist.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    }
+                });
+            } catch (Exception ex) {
+                SwingUtilities.invokeLater(() -> {
+                    createAccountButton.setEnabled(true);
+                    createAccountButton.setText("Create Account");
                     JOptionPane.showMessageDialog(this,
-                        "Thank you! Please check your email for instructions on creating an account.",
-                        "Request Submitted",
-                        JOptionPane.INFORMATION_MESSAGE);
-                    emailField.setText(""); // Clear the field
-                } else {
-                    JOptionPane.showMessageDialog(this,
-                        "Failed to send email. Please try again later or contact support.",
-                        "Email Failed",
+                        "Error connecting to server: " + ex.getMessage(),
+                        "Error",
                         JOptionPane.ERROR_MESSAGE);
-                }
-            });
+                });
+            }
         }).start();
     }
 
-    private void showNoLoginScreen() {
+    private void showSignupScreen() {
         BackgroundPanel panel = new BackgroundPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
-        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        panel.setBorder(BorderFactory.createEmptyBorder(20, 40, 20, 40));
 
-        JLabel title = new JLabel("Golf Registration Signup");
+        JLabel title = new JLabel("Create Account");
         title.setAlignmentX(CENTER_ALIGNMENT);
-        title.setFont(new Font("Arial", Font.BOLD, 24));
-        panel.add(title);
+        title.setFont(new Font("Arial", Font.BOLD, 26));
         title.setForeground(Color.WHITE);
+        panel.add(title);
 
         panel.add(Box.createVerticalStrut(20));
 
-        JLabel noAccountLabel = new JLabel("You do not have an account.");
-        noAccountLabel.setAlignmentX(CENTER_ALIGNMENT);
-        noAccountLabel.setForeground(Color.WHITE);
-        panel.add(noAccountLabel);
+        // Username field
+        JLabel usernameLabel = new JLabel("Username:");
+        usernameLabel.setAlignmentX(CENTER_ALIGNMENT);
+        usernameLabel.setForeground(Color.WHITE);
+        usernameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        panel.add(usernameLabel);
+        
+        usernameField = new JTextField(20);
+        usernameField.setMaximumSize(new Dimension(300, 35));
+        usernameField.setAlignmentX(CENTER_ALIGNMENT);
+        panel.add(usernameField);
+        panel.add(Box.createVerticalStrut(10));
 
-        panel.add(Box.createVerticalStrut(20));
+        // Password field
+        JLabel passwordLabel = new JLabel("Password (min 6 characters):");
+        passwordLabel.setAlignmentX(CENTER_ALIGNMENT);
+        passwordLabel.setForeground(Color.WHITE);
+        passwordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        panel.add(passwordLabel);
+        
+        passwordField = new JPasswordField(20);
+        passwordField.setMaximumSize(new Dimension(300, 35));
+        passwordField.setAlignmentX(CENTER_ALIGNMENT);
+        panel.add(passwordField);
+        panel.add(Box.createVerticalStrut(10));
 
-        // Create account section
-        JLabel emailLabel = new JLabel("Request Account Access:");
+        // Confirm password field
+        JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
+        confirmPasswordLabel.setAlignmentX(CENTER_ALIGNMENT);
+        confirmPasswordLabel.setForeground(Color.WHITE);
+        confirmPasswordLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        panel.add(confirmPasswordLabel);
+        
+        confirmPasswordField = new JPasswordField(20);
+        confirmPasswordField.setMaximumSize(new Dimension(300, 35));
+        confirmPasswordField.setAlignmentX(CENTER_ALIGNMENT);
+        panel.add(confirmPasswordField);
+        panel.add(Box.createVerticalStrut(10));
+
+        // First name field
+        JLabel firstNameLabel = new JLabel("First Name:");
+        firstNameLabel.setAlignmentX(CENTER_ALIGNMENT);
+        firstNameLabel.setForeground(Color.WHITE);
+        firstNameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        panel.add(firstNameLabel);
+        
+        firstNameField = new JTextField(20);
+        firstNameField.setMaximumSize(new Dimension(300, 35));
+        firstNameField.setAlignmentX(CENTER_ALIGNMENT);
+        panel.add(firstNameField);
+        panel.add(Box.createVerticalStrut(10));
+
+        // Last name field
+        JLabel lastNameLabel = new JLabel("Last Name:");
+        lastNameLabel.setAlignmentX(CENTER_ALIGNMENT);
+        lastNameLabel.setForeground(Color.WHITE);
+        lastNameLabel.setFont(new Font("Arial", Font.PLAIN, 14));
+        panel.add(lastNameLabel);
+        
+        lastNameField = new JTextField(20);
+        lastNameField.setMaximumSize(new Dimension(300, 35));
+        lastNameField.setAlignmentX(CENTER_ALIGNMENT);
+        panel.add(lastNameField);
+        panel.add(Box.createVerticalStrut(10));
+
+        // Email field
+        JLabel emailLabel = new JLabel("Email:");
         emailLabel.setAlignmentX(CENTER_ALIGNMENT);
         emailLabel.setForeground(Color.WHITE);
-        emailLabel.setFont(new Font("Arial", Font.BOLD, 14));
+        emailLabel.setFont(new Font("Arial", Font.PLAIN, 14));
         panel.add(emailLabel);
-
-        panel.add(Box.createVerticalStrut(10));
-
+        
         emailField = new JTextField(20);
-        emailField.setMaximumSize(new Dimension(300, 30));
+        emailField.setMaximumSize(new Dimension(300, 35));
         emailField.setAlignmentX(CENTER_ALIGNMENT);
-        emailField.addActionListener(e -> submitEmailButton.doClick()); // Allow Enter key
         panel.add(emailField);
 
-        panel.add(Box.createVerticalStrut(10));
-
-        submitEmailButton = new JButton("Submit Email");
-        submitEmailButton.setAlignmentX(CENTER_ALIGNMENT);
-        submitEmailButton.setMinimumSize(new Dimension(150, 35));
-        submitEmailButton.setMaximumSize(new Dimension(200, 35));
-        submitEmailButton.setFont(new Font("Arial", Font.BOLD, 14));
-        submitEmailButton.addActionListener(this);
-        panel.add(submitEmailButton);
-
         panel.add(Box.createVerticalStrut(20));
 
-        // Separator
-        JLabel orLabel = new JLabel("- OR -");
-        orLabel.setAlignmentX(CENTER_ALIGNMENT);
-        orLabel.setForeground(Color.WHITE);
-        panel.add(orLabel);
+        // Create account button
+        createAccountButton = new JButton("Create Account");
+        createAccountButton.setAlignmentX(CENTER_ALIGNMENT);
+        createAccountButton.setMinimumSize(new Dimension(200, 40));
+        createAccountButton.setMaximumSize(new Dimension(250, 40));
+        createAccountButton.setFont(new Font("Arial", Font.BOLD, 16));
+        createAccountButton.setBackground(new Color(40, 167, 69));
+        createAccountButton.setForeground(Color.WHITE);
+        createAccountButton.addActionListener(this);
+        panel.add(createAccountButton);
 
-        panel.add(Box.createVerticalStrut(20));
+        panel.add(Box.createVerticalStrut(15));
 
-        showLoginButton = new JButton("Go to Login");
+        // Back to login button
+        showLoginButton = new JButton("Back to Login");
         showLoginButton.setAlignmentX(CENTER_ALIGNMENT);
-        showLoginButton.setMinimumSize(new Dimension(150, 35));
-        showLoginButton.setMaximumSize(new Dimension(200, 35));
+        showLoginButton.setMinimumSize(new Dimension(200, 35));
+        showLoginButton.setMaximumSize(new Dimension(250, 35));
+        showLoginButton.setFont(new Font("Arial", Font.PLAIN, 14));
         showLoginButton.addActionListener(this);
         panel.add(showLoginButton);
 
         // Set default button for Enter key
-        getRootPane().setDefaultButton(submitEmailButton);
+        getRootPane().setDefaultButton(createAccountButton);
 
         setContentPane(panel);
         setVisible(true);

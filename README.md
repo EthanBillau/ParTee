@@ -1,4 +1,4 @@
-# CS 180 Team Project - Phase 1: Golf Course Reservation System
+# CS 180 Team Project - Golf Course Reservation System (ParTee)
 
 ## Team Members
 - Ethan Billau (ebillau)
@@ -10,15 +10,77 @@
 ---
 
 ## Project Overview
-This project implements a comprehensive database backend for a golf course reservation system (Option 1). The system supports user account management, tee time booking, reservation tracking, events, and course configuration management. All components are thread-safe and include persistent data storage.
+This project implements a comprehensive golf course reservation system with secure user authentication, dynamic server configuration, and an intuitive GUI. The system supports user account management, tee time booking, reservation tracking, events, and course configuration management. All components are thread-safe and include persistent data storage with encrypted passwords.
+
+## Recent Improvements (December 2025)
+
+### Security Enhancements
+- **Password Hashing**: All passwords are now hashed using BCrypt (work factor 12) before storage
+- **Duplicate Prevention**: System prevents duplicate usernames and email addresses during registration
+- **Secure Authentication**: Constant-time password comparison to prevent timing attacks
+
+### Improved User Experience
+- **Login with Email**: Users can now login with either username or email address
+- **Logout Functionality**: Added logout button with confirmation dialog in main menu
+- **Better Form Validation**: Enhanced input validation with clear error messages
+- **Larger Windows**: Increased GUI window sizes for better accessibility (700x500+)
+- **Full Signup Form**: NoAccountGUI now provides a complete account creation form
+
+### Dynamic Configuration
+- **Flexible Server IP**: Server host/port can be configured via `server.properties` file
+- **No Hard-Coded IPs**: All server connections use dynamic configuration
+- **Easy Deployment**: Change server location without modifying code
+
+---
+
+## Server Configuration
+
+The system now supports dynamic server configuration through a properties file. This allows you to change the server host and port without modifying code.
+
+### Configuring Server Connection
+
+1. Create or edit the `server.properties` file in the project root:
+```properties
+# Server Configuration
+server.host=localhost
+server.port=5050
+```
+
+2. To connect to a remote server, change `localhost` to the server's IP address:
+```properties
+server.host=192.168.1.100
+server.port=5050
+```
+
+3. The changes will take effect the next time you start the client
+
+### Example Configurations
+
+**Local Testing:**
+```properties
+server.host=localhost
+server.port=5050
+```
+
+**Remote Server:**
+```properties
+server.host=192.168.1.50
+server.port=5050
+```
+
+**Cloud Deployment:**
+```properties
+server.host=your-server.example.com
+server.port=8080
+```
 
 ---
 
 ## Compilation and Execution Instructions
 
 ### Prerequisites
-- Java Development Kit (JDK) 11 or higher
-- JUnit 5 (included in `lib/junit-platform-console-standalone-6.0.1.jar`)
+- Java Development Kit (JDK) 17 or higher
+- Maven 3.6 or higher
 
 ### Compiling the Project
 ```bash
