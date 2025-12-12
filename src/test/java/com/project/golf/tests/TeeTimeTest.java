@@ -29,7 +29,7 @@ public class TeeTimeTest {
     teeTime = new TeeTime("2025-11-15", "09:00", "Hole 1", 4, 30.0, 50.0);
   }
 
-  // CONSTRTOR --------------------------------------------------
+  // CONSTRUCTOR --------------------------------------------------
 
   @Test
   public void testConstructor() {
@@ -76,7 +76,7 @@ public class TeeTimeTest {
     assertEquals(30.0, teeTime.getPricePerPerson());
   }
 
-  // AVAIBILITY --------------------------------------------------
+  // AVAILABILITY --------------------------------------------------
 
   @Test
   public void testInitialAvailability() {
