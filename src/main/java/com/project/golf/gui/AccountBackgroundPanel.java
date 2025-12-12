@@ -5,155 +5,149 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
-
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
 /**
  * AccountBackgroundPanel.java
  *
- * Background panel with aspect ratio preservation for AccountOptionsGUI.
- * Scales image with "contain" mode keeping full image visible.
+ * <p>Background panel with aspect ratio preservation for AccountOptionsGUI. Scales image with
+ * "contain" mode keeping full image visible.
  *
- * Data structures: BufferedImage for background, static String constants
- * for classpath and filesystem resource paths.
- * Algorithm: Image loading with fallback chain, "contain" scaling mode
- * maintaining aspect ratio, preferred size calculation based on children and image ratio.
- * Features: Aspect ratio preservation, "contain" scaling mode, AccountOptionsGUI theming,
- * multi-source image loading, custom layout sizing.
+ * <p>Data structures: BufferedImage for background, static String constants for classpath and
+ * filesystem resource paths. Algorithm: Image loading with fallback chain, "contain" scaling mode
+ * maintaining aspect ratio, preferred size calculation based on children and image ratio. Features:
+ * Aspect ratio preservation, "contain" scaling mode, AccountOptionsGUI theming, multi-source image
+ * loading, custom layout sizing.
  *
  * @author Ethan Billau (ebillau), L15
- *
  * @version December 7, 2025
  */
-
 public class AccountBackgroundPanel extends JPanel {
-    private BufferedImage backgroundImage;  // loaded background image for account screen
+  private BufferedImage backgroundImage; // loaded background image for account screen
 
-    // Classpath location for background image resource
-    private static final String CLASSPATH_IMAGE =
-            "/com/project/golf/gui/backgroundDarkest.jpg";
+  // Classpath location for background image resource
+  private static final String CLASSPATH_IMAGE = "/com/project/golf/gui/backgroundDarkest.jpg";
 
-    // Filesystem fallback paths for background image loading
-    private static final String FILE_IMAGE_1 =
-            "com/project/golf/gui/backgroundDarkest.jpg";
-    private static final String FILE_IMAGE_2 =
-            "backgroundDarkest.jpg";
+  // Filesystem fallback paths for background image loading
+  private static final String FILE_IMAGE_1 = "com/project/golf/gui/backgroundDarkest.jpg";
+  private static final String FILE_IMAGE_2 = "backgroundDarkest.jpg";
 
-    public AccountBackgroundPanel() {
-        this(null);
+  public AccountBackgroundPanel() {
+    this(null);
+  }
+
+  public AccountBackgroundPanel(LayoutManager layout) {
+    super(layout);
+    loadBackgroundImage();
+    setOpaque(true);
+    setBackground(Color.BLACK); // fallback if image missing
+  }
+
+  private void loadBackgroundImage() {
+    try {
+      // 1) Try classpath
+      URL url = getClass().getResource(CLASSPATH_IMAGE);
+      if (url != null) {
+        backgroundImage = ImageIO.read(url);
+        return;
+      }
+
+      // 2) Fallback: file paths
+      File f = new File(FILE_IMAGE_1);
+      if (f.exists()) {
+        backgroundImage = ImageIO.read(f);
+        return;
+      }
+      f = new File(FILE_IMAGE_2);
+      if (f.exists()) {
+        backgroundImage = ImageIO.read(f);
+        return;
+      }
+
+      System.err.println(
+          "Account background image not found: "
+              + CLASSPATH_IMAGE
+              + " / "
+              + FILE_IMAGE_1
+              + " / "
+              + FILE_IMAGE_2);
+    } catch (IOException e) {
+      System.err.println("Error loading account background image: " + e.getMessage());
+    }
+  }
+
+  /**
+   * Preferred size = the smallest scaled version of the image that is large enough to contain all
+   * child components.
+   */
+  @Override
+  public Dimension getPreferredSize() {
+    Dimension childPref = super.getPreferredSize();
+
+    if (backgroundImage == null) {
+      return childPref;
     }
 
-    public AccountBackgroundPanel(LayoutManager layout) {
-        super(layout);
-        loadBackgroundImage();
-        setOpaque(true);
-        setBackground(Color.BLACK); // fallback if image missing
+    int imgW = backgroundImage.getWidth();
+    int imgH = backgroundImage.getHeight();
+
+    // No children yet → just use raw image size
+    if (childPref.width == 0 && childPref.height == 0) {
+      return new Dimension(imgW, imgH);
     }
 
-    private void loadBackgroundImage() {
-        try {
-            // 1) Try classpath
-            URL url = getClass().getResource(CLASSPATH_IMAGE);
-            if (url != null) {
-                backgroundImage = ImageIO.read(url);
-                return;
-            }
+    int minW = childPref.width;
+    int minH = childPref.height;
 
-            // 2) Fallback: file paths
-            File f = new File(FILE_IMAGE_1);
-            if (f.exists()) {
-                backgroundImage = ImageIO.read(f);
-                return;
-            }
-            f = new File(FILE_IMAGE_2);
-            if (f.exists()) {
-                backgroundImage = ImageIO.read(f);
-                return;
-            }
+    // Scale so the scaled image is >= child size in both directions
+    double scale = Math.max(minW / (double) imgW, minH / (double) imgH);
 
-            System.err.println("Account background image not found: "
-                    + CLASSPATH_IMAGE + " / " + FILE_IMAGE_1 + " / " + FILE_IMAGE_2);
-        } catch (IOException e) {
-            System.err.println("Error loading account background image: " + e.getMessage());
-        }
+    // If children are smaller than the image, don't shrink the image below 1x
+    if (scale < 1.0) {
+      scale = 1.0;
     }
 
-    /**
-     * Preferred size = the smallest scaled version of the image
-     * that is large enough to contain all child components.
-     */
-    @Override
-    public Dimension getPreferredSize() {
-        Dimension childPref = super.getPreferredSize();
+    int scaledW = (int) Math.ceil(imgW * scale);
+    int scaledH = (int) Math.ceil(imgH * scale);
 
-        if (backgroundImage == null) {
-            return childPref;
-        }
+    return new Dimension(scaledW, scaledH);
+  }
 
-        int imgW = backgroundImage.getWidth();
-        int imgH = backgroundImage.getHeight();
+  @Override
+  protected void paintComponent(Graphics g) {
+    super.paintComponent(g);
 
-        // No children yet → just use raw image size
-        if (childPref.width == 0 && childPref.height == 0) {
-            return new Dimension(imgW, imgH);
-        }
-
-        int minW = childPref.width;
-        int minH = childPref.height;
-
-        // Scale so the scaled image is >= child size in both directions
-        double scale = Math.max(minW / (double) imgW,
-                                minH / (double) imgH);
-
-        // If children are smaller than the image, don't shrink the image below 1x
-        if (scale < 1.0) {
-            scale = 1.0;
-        }
-
-        int scaledW = (int) Math.ceil(imgW * scale);
-        int scaledH = (int) Math.ceil(imgH * scale);
-
-        return new Dimension(scaledW, scaledH);
+    if (backgroundImage == null) {
+      return;
     }
 
-    @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
+    Graphics2D g2d = (Graphics2D) g.create();
+    g2d.setRenderingHint(
+        RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+    g2d.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
 
-        if (backgroundImage == null) {
-            return;
-        }
+    int imgW = backgroundImage.getWidth();
+    int imgH = backgroundImage.getHeight();
+    int panelW = getWidth();
+    int panelH = getHeight();
 
-        Graphics2D g2d = (Graphics2D) g.create();
-        g2d.setRenderingHint(RenderingHints.KEY_INTERPOLATION,
-                             RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-        g2d.setRenderingHint(RenderingHints.KEY_RENDERING,
-                             RenderingHints.VALUE_RENDER_QUALITY);
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                             RenderingHints.VALUE_ANTIALIAS_ON);
-
-        int imgW = backgroundImage.getWidth();
-        int imgH = backgroundImage.getHeight();
-        int panelW = getWidth();
-        int panelH = getHeight();
-
-        if (panelW <= 0 || panelH <= 0) {
-            g2d.dispose();
-            return;
-        }
-
-        // "CONTAIN" behavior: whole image visible, aspect ratio preserved
-        double scale = Math.min(panelW / (double) imgW,
-                                panelH / (double) imgH);
-
-        int drawW = (int) Math.round(imgW * scale);
-        int drawH = (int) Math.round(imgH * scale);
-
-        int x = (panelW - drawW) / 2;
-        int y = (panelH - drawH) / 2;
-
-        g2d.drawImage(backgroundImage, x, y, drawW, drawH, this);
-        g2d.dispose();
+    if (panelW <= 0 || panelH <= 0) {
+      g2d.dispose();
+      return;
     }
+
+    // "CONTAIN" behavior: whole image visible, aspect ratio preserved
+    double scale = Math.min(panelW / (double) imgW, panelH / (double) imgH);
+
+    int drawW = (int) Math.round(imgW * scale);
+    int drawH = (int) Math.round(imgH * scale);
+
+    int x = (panelW - drawW) / 2;
+    int y = (panelH - drawH) / 2;
+
+    g2d.drawImage(backgroundImage, x, y, drawW, drawH, this);
+    g2d.dispose();
+  }
 }

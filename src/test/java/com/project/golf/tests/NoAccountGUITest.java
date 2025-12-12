@@ -1,239 +1,172 @@
 package com.project.golf.tests;
 
-import com.project.golf.gui.NoAccountGUI;
-
-import org.junit.jupiter.api.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.project.golf.gui.NoAccountGUI;
 import javax.swing.*;
+import org.junit.jupiter.api.*;
 
 /**
- *
  * NoAccountGUITest.java
  *
+ * <p>JUnit test suite for NoAccountGUI class.
  *
+ * <p>Tests constructors and basic GUI component initialization for user registration.
  *
- * JUnit test suite for NoAccountGUI class.
- *
- * Tests constructors and basic GUI component initialization for user
- * registration.
- *
- * Does NOT test event handlers (button clicks) per project requirements.
- *
- *
+ * <p>Does NOT test event handlers (button clicks) per project requirements.
  *
  * @author Anoushka Chakravarty (chakr181), Ethan Billau (ebillau), L15
- *
  * @version December 7, 2025
- *
  */
 public class NoAccountGUITest {
 
-    /**
-     *
-     * Test that NoAccountGUI constructor executes without throwing exceptions.
-     *
-     */
-    @Test
+  /** Test that NoAccountGUI constructor executes without throwing exceptions. */
+  @Test
+  public void testNoAccountGUIConstructorDoesNotThrow() {
 
-    public void testNoAccountGUIConstructorDoesNotThrow() {
+    assertDoesNotThrow(
+        () -> {
+          NoAccountGUI gui = new NoAccountGUI();
 
-        assertDoesNotThrow(() -> {
+          gui.dispose();
+        },
+        "NoAccountGUI constructor should not throw exceptions");
+  }
 
-            NoAccountGUI gui = new NoAccountGUI();
+  /** Test that NoAccountGUI constructor creates a non-null object. */
+  @Test
+  public void testNoAccountGUIConstructorNotNull() {
 
-            gui.dispose();
+    NoAccountGUI gui = new NoAccountGUI();
 
-        }, "NoAccountGUI constructor should not throw exceptions");
+    assertNotNull(gui, "NoAccountGUI constructor should create a non-null object");
 
-    }
+    gui.dispose();
+  }
 
-    /**
-     *
-     * Test that NoAccountGUI constructor creates a non-null object.
-     *
-     */
-    @Test
+  /** Test that NoAccountGUI extends JFrame. */
+  @Test
+  public void testNoAccountGUIExtendsJFrame() {
 
-    public void testNoAccountGUIConstructorNotNull() {
+    NoAccountGUI gui = new NoAccountGUI();
 
-        NoAccountGUI gui = new NoAccountGUI();
+    assertTrue(gui instanceof JFrame, "NoAccountGUI should extend JFrame");
 
-        assertNotNull(gui, "NoAccountGUI constructor should create a non-null object");
+    gui.dispose();
+  }
 
-        gui.dispose();
+  /** Test that NoAccountGUI sets a title. */
+  @Test
+  public void testNoAccountGUIHasTitle() {
 
-    }
+    NoAccountGUI gui = new NoAccountGUI();
 
-    /**
-     *
-     * Test that NoAccountGUI extends JFrame.
-     *
-     */
-    @Test
+    String title = gui.getTitle();
 
-    public void testNoAccountGUIExtendsJFrame() {
+    assertNotNull(title, "NoAccountGUI should have a title");
 
-        NoAccountGUI gui = new NoAccountGUI();
+    assertTrue(title.length() > 0, "NoAccountGUI title should not be empty");
 
-        assertTrue(gui instanceof JFrame, "NoAccountGUI should extend JFrame");
+    gui.dispose();
+  }
 
-        gui.dispose();
+  /** Test that NoAccountGUI sets a default close operation. */
+  @Test
+  public void testNoAccountGUIHasDefaultCloseOperation() {
 
-    }
+    NoAccountGUI gui = new NoAccountGUI();
 
-    /**
-     *
-     * Test that NoAccountGUI sets a title.
-     *
-     */
-    @Test
+    int closeOp = gui.getDefaultCloseOperation();
 
-    public void testNoAccountGUIHasTitle() {
+    assertTrue(
+        closeOp == JFrame.EXIT_ON_CLOSE || closeOp == JFrame.DISPOSE_ON_CLOSE,
+        "NoAccountGUI should have appropriate close operation");
 
-        NoAccountGUI gui = new NoAccountGUI();
+    gui.dispose();
+  }
 
-        String title = gui.getTitle();
+  /** Test that NoAccountGUI has reasonable dimensions. */
+  @Test
+  public void testNoAccountGUIHasReasonableSize() {
 
-        assertNotNull(title, "NoAccountGUI should have a title");
+    NoAccountGUI gui = new NoAccountGUI();
 
-        assertTrue(title.length() > 0, "NoAccountGUI title should not be empty");
+    int width = gui.getWidth();
 
-        gui.dispose();
+    int height = gui.getHeight();
 
-    }
+    assertTrue(width > 0, "NoAccountGUI width should be greater than 0");
 
-    /**
-     *
-     * Test that NoAccountGUI sets a default close operation.
-     *
-     */
-    @Test
+    assertTrue(height > 0, "NoAccountGUI height should be greater than 0");
 
-    public void testNoAccountGUIHasDefaultCloseOperation() {
+    assertTrue(width <= 1920, "NoAccountGUI width should be reasonable");
 
-        NoAccountGUI gui = new NoAccountGUI();
+    assertTrue(height <= 1080, "NoAccountGUI height should be reasonable");
 
-        int closeOp = gui.getDefaultCloseOperation();
+    gui.dispose();
+  }
 
-        assertTrue(closeOp == JFrame.EXIT_ON_CLOSE || closeOp == JFrame.DISPOSE_ON_CLOSE,
-                "NoAccountGUI should have appropriate close operation");
+  /**
+   * Test that NoAccountGUI has a content pane with components.
+   *
+   * <p>Should have input fields for username, password, name, email, etc.
+   */
+  @Test
+  public void testNoAccountGUIHasContentPane() {
 
-        gui.dispose();
+    NoAccountGUI gui = new NoAccountGUI();
 
-    }
+    assertNotNull(gui.getContentPane(), "NoAccountGUI should have a content pane");
 
-    /**
-     *
-     * Test that NoAccountGUI has reasonable dimensions.
-     *
-     */
-    @Test
+    assertTrue(
+        gui.getContentPane().getComponentCount() > 0,
+        "NoAccountGUI content pane should have components (input fields, buttons)");
 
-    public void testNoAccountGUIHasReasonableSize() {
+    gui.dispose();
+  }
 
-        NoAccountGUI gui = new NoAccountGUI();
+  /** Test that multiple NoAccountGUI instances can be created. */
+  @Test
+  public void testMultipleNoAccountGUIInstances() {
 
-        int width = gui.getWidth();
+    NoAccountGUI gui1 = new NoAccountGUI();
 
-        int height = gui.getHeight();
+    NoAccountGUI gui2 = new NoAccountGUI();
 
-        assertTrue(width > 0, "NoAccountGUI width should be greater than 0");
+    assertNotNull(gui1, "First NoAccountGUI instance should not be null");
 
-        assertTrue(height > 0, "NoAccountGUI height should be greater than 0");
+    assertNotNull(gui2, "Second NoAccountGUI instance should not be null");
 
-        assertTrue(width <= 1920, "NoAccountGUI width should be reasonable");
+    assertNotSame(gui1, gui2, "Multiple NoAccountGUI instances should be different objects");
 
-        assertTrue(height <= 1080, "NoAccountGUI height should be reasonable");
+    gui1.dispose();
 
-        gui.dispose();
+    gui2.dispose();
+  }
 
-    }
+  /** Test that NoAccountGUI can be disposed without errors. */
+  @Test
+  public void testNoAccountGUIDispose() {
 
-    /**
-     *
-     * Test that NoAccountGUI has a content pane with components.
-     *
-     * Should have input fields for username, password, name, email, etc.
-     *
-     */
-    @Test
+    NoAccountGUI gui = new NoAccountGUI();
 
-    public void testNoAccountGUIHasContentPane() {
+    assertDoesNotThrow(
+        () -> gui.dispose(), "NoAccountGUI should dispose without throwing exceptions");
+  }
 
-        NoAccountGUI gui = new NoAccountGUI();
+  /** Test that NoAccountGUI title contains relevant keywords. */
+  @Test
+  public void testNoAccountGUIHasCorrectTitle() {
 
-        assertNotNull(gui.getContentPane(), "NoAccountGUI should have a content pane");
+    NoAccountGUI gui = new NoAccountGUI();
 
-        assertTrue(gui.getContentPane().getComponentCount() > 0,
-                "NoAccountGUI content pane should have components (input fields, buttons)");
+    String title = gui.getTitle();
 
-        gui.dispose();
+    boolean hasRelevantKeyword = title.contains("Golf Course Reservation System");
 
-    }
+    assertTrue(
+        hasRelevantKeyword, "NoAccountGUI title should contain registration-related keywords");
 
-    /**
-     *
-     * Test that multiple NoAccountGUI instances can be created.
-     *
-     */
-    @Test
-
-    public void testMultipleNoAccountGUIInstances() {
-
-        NoAccountGUI gui1 = new NoAccountGUI();
-
-        NoAccountGUI gui2 = new NoAccountGUI();
-
-        assertNotNull(gui1, "First NoAccountGUI instance should not be null");
-
-        assertNotNull(gui2, "Second NoAccountGUI instance should not be null");
-
-        assertNotSame(gui1, gui2, "Multiple NoAccountGUI instances should be different objects");
-
-        gui1.dispose();
-
-        gui2.dispose();
-
-    }
-
-    /**
-     *
-     * Test that NoAccountGUI can be disposed without errors.
-     *
-     */
-    @Test
-
-    public void testNoAccountGUIDispose() {
-
-        NoAccountGUI gui = new NoAccountGUI();
-
-        assertDoesNotThrow(() -> gui.dispose(),
-                "NoAccountGUI should dispose without throwing exceptions");
-
-    }
-
-    /**
-     *
-     * Test that NoAccountGUI title contains relevant keywords.
-     *
-     */
-    @Test
-
-    public void testNoAccountGUIHasCorrectTitle() {
-
-        NoAccountGUI gui = new NoAccountGUI();
-
-        String title = gui.getTitle();
-        
-        boolean hasRelevantKeyword = title.contains("Golf Course Reservation System");
-
-        assertTrue(hasRelevantKeyword,
-                "NoAccountGUI title should contain registration-related keywords");
-
-        gui.dispose();
-
-    }
-
+    gui.dispose();
+  }
 }

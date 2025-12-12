@@ -1,329 +1,232 @@
 package com.project.golf.tests;
 
-import com.project.golf.gui.ManageReservationsGUI;
-
-import com.project.golf.client.Client;
-
-import org.junit.jupiter.api.*;
-
 import static org.junit.jupiter.api.Assertions.*;
 
+import com.project.golf.gui.ManageReservationsGUI;
 import javax.swing.*;
+import org.junit.jupiter.api.*;
 
 /**
- *
  * ManageReservationsGUITest.java
  *
+ * <p>JUnit test suite for ManageReservationsGUI class.
  *
+ * <p>Tests constructors and basic GUI component initialization for reservation management.
  *
- * JUnit test suite for ManageReservationsGUI class.
- *
- * Tests constructors and basic GUI component initialization for reservation
- * management.
- *
- * Does NOT test event handlers (button clicks) per project requirements.
- *
- *
+ * <p>Does NOT test event handlers (button clicks) per project requirements.
  *
  * @author Anoushka Chakravarty (chakr181), Ethan Billau (ebillau), L15
- *
  * @version December 7, 2025
- *
  */
 public class ManageReservationsGUITest {
 
-    /**
-     *
-     * Test that ManageReservationsGUI constructor with username and null client
-     * works.
-     *
-     */
-    @Test
+  /** Test that ManageReservationsGUI constructor with username and null client works. */
+  @Test
+  public void testManageReservationsGUIConstructorBasic() {
 
-    public void testManageReservationsGUIConstructorBasic() {
+    assertDoesNotThrow(
+        () -> {
+          ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-        assertDoesNotThrow(() -> {
+          gui.dispose();
+        },
+        "ManageReservationsGUI constructor should not throw exceptions");
+  }
 
-            ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
+  /** Test that ManageReservationsGUI constructor creates a non-null object. */
+  @Test
+  public void testManageReservationsGUIConstructorNotNull() {
 
-            gui.dispose();
+    ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-        }, "ManageReservationsGUI constructor should not throw exceptions");
+    assertNotNull(gui, "ManageReservationsGUI should create a non-null object");
 
-    }
+    gui.dispose();
+  }
 
-    /**
-     *
-     * Test that ManageReservationsGUI constructor creates a non-null object.
-     *
-     */
-    @Test
+  /** Test that ManageReservationsGUI no-arg constructor works (for compatibility). */
+  @Test
+  public void testManageReservationsGUINoArgConstructor() {
 
-    public void testManageReservationsGUIConstructorNotNull() {
+    assertDoesNotThrow(
+        () -> {
+          ManageReservationsGUI gui = new ManageReservationsGUI();
 
-        ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
+          gui.dispose();
+        },
+        "ManageReservationsGUI no-arg constructor should not throw exceptions");
+  }
 
-        assertNotNull(gui, "ManageReservationsGUI should create a non-null object");
+  /** Test that ManageReservationsGUI extends JFrame. */
+  @Test
+  public void testManageReservationsGUIExtendsJFrame() {
 
-        gui.dispose();
+    ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-    }
+    assertTrue(gui instanceof JFrame, "ManageReservationsGUI should extend JFrame");
 
-    /**
-     *
-     * Test that ManageReservationsGUI no-arg constructor works (for
-     * compatibility).
-     *
-     */
-    @Test
+    gui.dispose();
+  }
 
-    public void testManageReservationsGUINoArgConstructor() {
+  /** Test that ManageReservationsGUI sets a title. */
+  @Test
+  public void testManageReservationsGUIHasTitle() {
 
-        assertDoesNotThrow(() -> {
+    ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-            ManageReservationsGUI gui = new ManageReservationsGUI();
+    String title = gui.getTitle();
 
-            gui.dispose();
+    assertNotNull(title, "ManageReservationsGUI should have a title");
 
-        }, "ManageReservationsGUI no-arg constructor should not throw exceptions");
+    assertTrue(title.length() > 0, "ManageReservationsGUI title should not be empty");
 
-    }
+    gui.dispose();
+  }
 
-    /**
-     *
-     * Test that ManageReservationsGUI extends JFrame.
-     *
-     */
-    @Test
+  /** Test that ManageReservationsGUI sets a default close operation. */
+  @Test
+  public void testManageReservationsGUIHasDefaultCloseOperation() {
 
-    public void testManageReservationsGUIExtendsJFrame() {
+    ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-        ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
+    int closeOp = gui.getDefaultCloseOperation();
 
-        assertTrue(gui instanceof JFrame, "ManageReservationsGUI should extend JFrame");
+    assertTrue(
+        closeOp == JFrame.EXIT_ON_CLOSE || closeOp == JFrame.DISPOSE_ON_CLOSE,
+        "ManageReservationsGUI should have appropriate close operation");
 
-        gui.dispose();
+    gui.dispose();
+  }
 
-    }
+  /** Test that ManageReservationsGUI has reasonable dimensions. */
+  @Test
+  public void testManageReservationsGUIHasReasonableSize() {
 
-    /**
-     *
-     * Test that ManageReservationsGUI sets a title.
-     *
-     */
-    @Test
+    ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-    public void testManageReservationsGUIHasTitle() {
+    int width = gui.getWidth();
 
-        ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
+    int height = gui.getHeight();
 
-        String title = gui.getTitle();
+    assertTrue(width > 0, "ManageReservationsGUI width should be greater than 0");
 
-        assertNotNull(title, "ManageReservationsGUI should have a title");
+    assertTrue(height > 0, "ManageReservationsGUI height should be greater than 0");
 
-        assertTrue(title.length() > 0, "ManageReservationsGUI title should not be empty");
+    assertTrue(width <= 1920, "ManageReservationsGUI width should be reasonable");
 
-        gui.dispose();
+    assertTrue(height <= 1080, "ManageReservationsGUI height should be reasonable");
 
-    }
+    gui.dispose();
+  }
 
-    /**
-     *
-     * Test that ManageReservationsGUI sets a default close operation.
-     *
-     */
-    @Test
+  /**
+   * Test that ManageReservationsGUI has a content pane with components.
+   *
+   * <p>Should have table for reservations or empty state message.
+   */
+  @Test
+  public void testManageReservationsGUIHasContentPane() {
 
-    public void testManageReservationsGUIHasDefaultCloseOperation() {
+    ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-        ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
+    assertNotNull(gui.getContentPane(), "ManageReservationsGUI should have a content pane");
 
-        int closeOp = gui.getDefaultCloseOperation();
+    assertTrue(
+        gui.getContentPane().getComponentCount() > 0,
+        "ManageReservationsGUI content pane should have components");
 
-        assertTrue(closeOp == JFrame.EXIT_ON_CLOSE || closeOp == JFrame.DISPOSE_ON_CLOSE,
-                "ManageReservationsGUI should have appropriate close operation");
+    gui.dispose();
+  }
 
-        gui.dispose();
+  /** Test that ManageReservationsGUI works with different usernames. */
+  @Test
+  public void testManageReservationsGUIWithDifferentUsernames() {
 
-    }
+    assertDoesNotThrow(
+        () -> {
+          ManageReservationsGUI gui1 = new ManageReservationsGUI("user1", null);
 
-    /**
-     *
-     * Test that ManageReservationsGUI has reasonable dimensions.
-     *
-     */
-    @Test
+          ManageReservationsGUI gui2 = new ManageReservationsGUI("user2", null);
 
-    public void testManageReservationsGUIHasReasonableSize() {
+          ManageReservationsGUI gui3 = new ManageReservationsGUI("admin", null);
 
-        ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
+          gui1.dispose();
 
-        int width = gui.getWidth();
+          gui2.dispose();
 
-        int height = gui.getHeight();
+          gui3.dispose();
+        },
+        "ManageReservationsGUI should work with different usernames");
+  }
 
-        assertTrue(width > 0, "ManageReservationsGUI width should be greater than 0");
+  /** Test that ManageReservationsGUI handles null username gracefully. */
+  @Test
+  public void testManageReservationsGUIWithNullUsername() {
 
-        assertTrue(height > 0, "ManageReservationsGUI height should be greater than 0");
+    assertDoesNotThrow(
+        () -> {
+          ManageReservationsGUI gui = new ManageReservationsGUI(null, null);
 
-        assertTrue(width <= 1920, "ManageReservationsGUI width should be reasonable");
+          gui.dispose();
+        },
+        "ManageReservationsGUI should handle null username");
+  }
 
-        assertTrue(height <= 1080, "ManageReservationsGUI height should be reasonable");
+  /** Test that ManageReservationsGUI handles empty username gracefully. */
+  @Test
+  public void testManageReservationsGUIWithEmptyUsername() {
 
-        gui.dispose();
+    assertDoesNotThrow(
+        () -> {
+          ManageReservationsGUI gui = new ManageReservationsGUI("", null);
 
-    }
+          gui.dispose();
+        },
+        "ManageReservationsGUI should handle empty username");
+  }
 
-    /**
-     *
-     * Test that ManageReservationsGUI has a content pane with components.
-     *
-     * Should have table for reservations or empty state message.
-     *
-     */
-    @Test
+  /** Test that multiple ManageReservationsGUI instances can be created. */
+  @Test
+  public void testMultipleManageReservationsGUIInstances() {
 
-    public void testManageReservationsGUIHasContentPane() {
+    ManageReservationsGUI gui1 = new ManageReservationsGUI("user1", null);
 
-        ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
+    ManageReservationsGUI gui2 = new ManageReservationsGUI("user2", null);
 
-        assertNotNull(gui.getContentPane(), "ManageReservationsGUI should have a content pane");
+    assertNotNull(gui1, "First ManageReservationsGUI instance should not be null");
 
-        assertTrue(gui.getContentPane().getComponentCount() > 0,
-                "ManageReservationsGUI content pane should have components");
+    assertNotNull(gui2, "Second ManageReservationsGUI instance should not be null");
 
-        gui.dispose();
+    assertNotSame(gui1, gui2, "Multiple instances should be different objects");
 
-    }
+    gui1.dispose();
 
-    /**
-     *
-     * Test that ManageReservationsGUI works with different usernames.
-     *
-     */
-    @Test
+    gui2.dispose();
+  }
 
-    public void testManageReservationsGUIWithDifferentUsernames() {
+  /** Test that ManageReservationsGUI title contains relevant keywords. */
+  @Test
+  public void testManageReservationsGUITitleRelevant() {
 
-        assertDoesNotThrow(() -> {
+    ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-            ManageReservationsGUI gui1 = new ManageReservationsGUI("user1", null);
+    String title = gui.getTitle().toLowerCase();
 
-            ManageReservationsGUI gui2 = new ManageReservationsGUI("user2", null);
+    boolean hasRelevantKeyword =
+        title.contains("manage") || title.contains("reservation") || title.contains("my");
 
-            ManageReservationsGUI gui3 = new ManageReservationsGUI("admin", null);
+    assertTrue(hasRelevantKeyword, "ManageReservationsGUI title should contain relevant keywords");
 
-            gui1.dispose();
+    gui.dispose();
+  }
 
-            gui2.dispose();
+  /** Test that ManageReservationsGUI can be disposed without errors. */
+  @Test
+  public void testManageReservationsGUIDispose() {
 
-            gui3.dispose();
+    ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
 
-        }, "ManageReservationsGUI should work with different usernames");
-
-    }
-
-    /**
-     *
-     * Test that ManageReservationsGUI handles null username gracefully.
-     *
-     */
-    @Test
-
-    public void testManageReservationsGUIWithNullUsername() {
-
-        assertDoesNotThrow(() -> {
-
-            ManageReservationsGUI gui = new ManageReservationsGUI(null, null);
-
-            gui.dispose();
-
-        }, "ManageReservationsGUI should handle null username");
-
-    }
-
-    /**
-     *
-     * Test that ManageReservationsGUI handles empty username gracefully.
-     *
-     */
-    @Test
-
-    public void testManageReservationsGUIWithEmptyUsername() {
-
-        assertDoesNotThrow(() -> {
-
-            ManageReservationsGUI gui = new ManageReservationsGUI("", null);
-
-            gui.dispose();
-
-        }, "ManageReservationsGUI should handle empty username");
-
-    }
-
-    /**
-     *
-     * Test that multiple ManageReservationsGUI instances can be created.
-     *
-     */
-    @Test
-
-    public void testMultipleManageReservationsGUIInstances() {
-
-        ManageReservationsGUI gui1 = new ManageReservationsGUI("user1", null);
-
-        ManageReservationsGUI gui2 = new ManageReservationsGUI("user2", null);
-
-        assertNotNull(gui1, "First ManageReservationsGUI instance should not be null");
-
-        assertNotNull(gui2, "Second ManageReservationsGUI instance should not be null");
-
-        assertNotSame(gui1, gui2, "Multiple instances should be different objects");
-
-        gui1.dispose();
-
-        gui2.dispose();
-
-    }
-
-    /**
-     *
-     * Test that ManageReservationsGUI title contains relevant keywords.
-     *
-     */
-    @Test
-
-    public void testManageReservationsGUITitleRelevant() {
-
-        ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
-
-        String title = gui.getTitle().toLowerCase();
-
-        boolean hasRelevantKeyword = title.contains("manage")
-                || title.contains("reservation")
-                || title.contains("my");
-
-        assertTrue(hasRelevantKeyword,
-                "ManageReservationsGUI title should contain relevant keywords");
-
-        gui.dispose();
-
-    }
-
-    /**
-     *
-     * Test that ManageReservationsGUI can be disposed without errors.
-     *
-     */
-    @Test
-
-    public void testManageReservationsGUIDispose() {
-
-        ManageReservationsGUI gui = new ManageReservationsGUI("testuser", null);
-
-        assertDoesNotThrow(() -> gui.dispose(),
-                "ManageReservationsGUI should dispose without exceptions");
-
-    }
-
+    assertDoesNotThrow(
+        () -> gui.dispose(), "ManageReservationsGUI should dispose without exceptions");
+  }
 }

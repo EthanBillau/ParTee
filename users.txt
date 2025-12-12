@@ -1,2 +1,0 @@
-usertest,user123,User,Test,test@example.com,true,false
-admintest,admin123,Admin,Test,admin@example.com,true,true
