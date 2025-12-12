@@ -1,1 +1,2 @@
-testuser,password123,Test,User,test@example.com,true,false
+usertest,user123,User,Test,test@example.com,true,false
+admintest,admin123,Admin,Test,admin@example.com,true,true

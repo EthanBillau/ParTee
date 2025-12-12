@@ -1,7 +1,6 @@
 package com.project.golf.gui;
 
 import com.project.golf.client.Client;
-import com.project.golf.utils.EmailSender;
 import com.project.golf.utils.ServerConfig;
 
 import java.awt.*;
