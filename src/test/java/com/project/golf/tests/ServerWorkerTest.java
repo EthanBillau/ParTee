@@ -192,8 +192,9 @@ public class ServerWorkerTest {
         String response = clientIn.readLine();
 
         assertTrue(response.startsWith("RESP|ERROR"), "ADD_USER with duplicate username should fail");
-        assertTrue(response.contains("Could not add user") || response.contains("username may exist"),
-                "Error should indicate username conflict");
+        assertTrue(response.contains("Could not add user") || response.contains("username may exist") 
+                || response.contains("Username already exists") || response.contains("Email already in use"),
+                "Error should indicate username or email conflict");
     }
 
     // Test: ADD_USER with insufficient arguments returns error.

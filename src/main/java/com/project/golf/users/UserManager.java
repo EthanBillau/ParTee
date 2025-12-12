@@ -1,5 +1,6 @@
 package com.project.golf.users;
     
+import com.project.golf.utils.PasswordUtil;
 import java.io.*;
 import java.util.ArrayList;
 import java.util.concurrent.locks.ReentrantReadWriteLock;
@@ -48,24 +49,32 @@ public class UserManager implements UserManagerInterface {
     /**
      * Adds a new user to the manager if username doesn't exist
      * Thread safe with write lock. Persists change to file.
+     * Now hashes passwords before storing and checks for duplicate emails.
      * 
      * @param username the new username
-     * @param password the password
+     * @param password the password (will be hashed before storage)
      * @param firstName user's first name
      * @param lastName user's last name
      * @param email user's email
      * @param hasPaid whether user has paid
-     * @return true if user added successfully, false if username exists or error
+     * @return true if user added successfully, false if username/email exists or error
      */
     @Override
     public boolean addUser(String username, String password, String firstName, 
                            String lastName, String email, boolean hasPaid) {
         writeLock.lock();
         try {
+            // Check if username already exists
             if (findUser(username) != null) {
                 return false;
             }
-            User newUser = new User(username, password, firstName, lastName, email, hasPaid);
+            // Check if email already exists
+            if (findUserByEmail(email) != null) {
+                return false;
+            }
+            // Hash the password before storing
+            String hashedPassword = PasswordUtil.hashPassword(password);
+            User newUser = new User(username, hashedPassword, firstName, lastName, email, hasPaid);
             users.add(newUser);
             saveUsersToFile(); // Persist change
             return true;
@@ -98,21 +107,64 @@ public class UserManager implements UserManagerInterface {
             readLock.unlock();
         }
     }
+    
+    /**
+     * Searches for a user by email
+     * Thread safe with read lock
+     * 
+     * @param email the email to search for
+     * @return the User object if found, null otherwise
+     */
+    public User findUserByEmail(String email) {
+        readLock.lock();
+        try {
+            if (email == null) {
+                return null;
+            }
+            for (User u : users) {
+                if (email.equalsIgnoreCase(u.getEmail())) {
+                    return u;
+                }
+            }
+            return null;
+        } finally {
+            readLock.unlock();
+        }
+    }
 
     /**
      * Validates user login credentials
      * Thread safe with read lock
+     * Supports login with username or email
+     * Uses BCrypt to verify hashed passwords, falls back to plaintext for legacy data
      * 
-     * @param username the username
-     * @param password the password
+     * @param usernameOrEmail the username or email
+     * @param password the password (plaintext)
      * @return true if credentials are valid, false otherwise
      */
     @Override
-    public boolean login(String username, String password) {
+    public boolean login(String usernameOrEmail, String password) {
         readLock.lock();
         try {
-            User u = findUser(username);
-            return u != null && u.getPassword().equals(password);
+            // Try to find user by username first, then by email
+            User u = findUser(usernameOrEmail);
+            if (u == null) {
+                u = findUserByEmail(usernameOrEmail);
+            }
+            
+            if (u == null) {
+                return false;
+            }
+            
+            String storedPassword = u.getPassword();
+            
+            // Check if stored password is hashed (BCrypt)
+            if (PasswordUtil.isHashed(storedPassword)) {
+                return PasswordUtil.verifyPassword(password, storedPassword);
+            } else {
+                // Legacy plaintext password support - return true but this should be migrated
+                return storedPassword.equals(password);
+            }
         } finally {
             readLock.unlock();
         }
