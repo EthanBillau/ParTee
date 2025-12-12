@@ -1,27 +1,37 @@
 package com.project.golf.gui;
 
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import javax.swing.*;
 import com.project.golf.client.Client;
+
+import java.awt.*;
+import java.awt.event.*;
+
+import javax.swing.*;
 
 /**
  * MainMenuGUI.java
  *
- * Main menu screen with three navigation options
+ * Primary navigation hub for authenticated users after login.
+ * Presents three main options for reservation management and account settings.
+ *
+ * Data structures: JFrame for window, JButtons for user options, String username,
+ * Client reference for server communication. BackgroundPanel for themed rendering.
+ * Algorithm: Swing event-driven architecture with ActionListener button callbacks.
+ * Features: Main menu display, button navigation to reservation/account GUIs,
+ * user context propagation, graceful session management.
  *
  * @author Anoushka Chakravarty (chakr181), L15
  *
- * @version 12/04/2025
+ * @version December 7, 2025
  */
+
 public class MainMenuGUI extends JFrame implements ActionListener {
 
-    private JButton makeReservationButton;
-    private JButton manageReservationButton;
-    private JButton accountOptionsButton;
-    private String username;
-    private Client client;
+    private JButton makeReservationButton;  // button to navigate to make reservation screen
+    private JButton manageReservationButton;  // button to navigate to manage reservations screen
+    private JButton accountOptionsButton;  // button to navigate to account options screen
+    private JButton chatBotButton;  // button to open AI chatbot assistant
+    private String username;  // currently logged-in username
+    private Client client;  // client connection for server communication
 
     public MainMenuGUI(String username, com.project.golf.client.Client client) {
         this.username = username;
@@ -40,27 +50,28 @@ public class MainMenuGUI extends JFrame implements ActionListener {
     }
 
     private void showMainMenu() {
-        // Left side: main menu panel
-        BackgroundPanel menuPanel = new BackgroundPanel();
-        menuPanel.setLayout(new BoxLayout(menuPanel, BoxLayout.Y_AXIS));
-        menuPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        menuPanel.setBackground(new Color(34, 139, 34));
+        BackgroundPanel panel = new BackgroundPanel();
+        panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
+        panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        panel.setBackground(new Color(34, 139, 34));
 
         JLabel title = new JLabel("Main Menu");
         title.setAlignmentX(CENTER_ALIGNMENT);
         title.setFont(new Font("Arial", Font.BOLD, 24));
         title.setForeground(Color.WHITE);
-        menuPanel.add(title);
+        panel.add(title);
 
+        // Display logged-in username if available
         if (username != null && !username.isEmpty()) {
             JLabel userLabel = new JLabel("Welcome, " + username + "!");
             userLabel.setAlignmentX(CENTER_ALIGNMENT);
             userLabel.setFont(new Font("Arial", Font.PLAIN, 14));
             userLabel.setForeground(Color.WHITE);
-            menuPanel.add(userLabel);
+            panel.add(userLabel);
         }
 
-        menuPanel.add(Box.createVerticalStrut(40));
+        panel.add(Box.createVerticalStrut(40));
 
         // Make Reservation Button
         makeReservationButton = new JButton("Make Reservation");
@@ -69,9 +80,9 @@ public class MainMenuGUI extends JFrame implements ActionListener {
         makeReservationButton.setMaximumSize(new Dimension(250, 50));
         makeReservationButton.setFont(new Font("Arial", Font.BOLD, 16));
         makeReservationButton.addActionListener(this);
-        menuPanel.add(makeReservationButton);
+        panel.add(makeReservationButton);
 
-        menuPanel.add(Box.createVerticalStrut(20));
+        panel.add(Box.createVerticalStrut(20));
 
         // Manage Reservation Button
         manageReservationButton = new JButton("Manage Reservation");
@@ -80,9 +91,9 @@ public class MainMenuGUI extends JFrame implements ActionListener {
         manageReservationButton.setMaximumSize(new Dimension(250, 50));
         manageReservationButton.setFont(new Font("Arial", Font.BOLD, 16));
         manageReservationButton.addActionListener(this);
-        menuPanel.add(manageReservationButton);
+        panel.add(manageReservationButton);
 
-        menuPanel.add(Box.createVerticalStrut(20));
+        panel.add(Box.createVerticalStrut(20));
 
         // Account Options Button
         accountOptionsButton = new JButton("Account Options");
@@ -91,18 +102,22 @@ public class MainMenuGUI extends JFrame implements ActionListener {
         accountOptionsButton.setMaximumSize(new Dimension(250, 50));
         accountOptionsButton.setFont(new Font("Arial", Font.BOLD, 16));
         accountOptionsButton.addActionListener(this);
-        menuPanel.add(accountOptionsButton);
+        panel.add(accountOptionsButton);
 
-        // Right side: AI chatbot panel
-        ChatBotPanelGemini25Flash chatBotPanel = new ChatBotPanelGemini25Flash();
-        chatBotPanel.setPreferredSize(new Dimension(350, 400)); // adjust as needed
+        panel.add(Box.createVerticalStrut(20));
 
-        // Combine both panels in a split pane
-        JSplitPane splitPane = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT, menuPanel, chatBotPanel);
-        splitPane.setResizeWeight(0.6); // 60% left (menu), 40% right (chatbot)
-        splitPane.setOneTouchExpandable(true);
+        // AI Chatbot Button
+        chatBotButton = new JButton("AI Assistant");
+        chatBotButton.setAlignmentX(CENTER_ALIGNMENT);
+        chatBotButton.setMinimumSize(new Dimension(250, 50));
+        chatBotButton.setMaximumSize(new Dimension(250, 50));
+        chatBotButton.setFont(new Font("Arial", Font.BOLD, 16));
+        chatBotButton.setBackground(new Color(70, 130, 180));
+        chatBotButton.setForeground(Color.WHITE);
+        chatBotButton.addActionListener(this);
+        panel.add(chatBotButton);
 
-        setContentPane(splitPane);
+        setContentPane(panel);
         setVisible(true);
     }
 
@@ -120,7 +135,22 @@ public class MainMenuGUI extends JFrame implements ActionListener {
             System.out.println("Account Options button clicked");
             this.dispose();
             new AccountOptionsGUI(username, client);
+        } else if (e.getSource() == chatBotButton) {
+            System.out.println("AI Assistant button clicked");
+            openChatBotWindow();
         }
+    }
+
+    private void openChatBotWindow() {
+        JFrame chatFrame = new JFrame("AI Golf Assistant");
+        chatFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE);
+        chatFrame.setSize(600, 500);
+        chatFrame.setLocationRelativeTo(this);
+        
+        ChatBotPanelGemini25Flash chatPanel = new ChatBotPanelGemini25Flash();
+        chatFrame.add(chatPanel);
+        
+        chatFrame.setVisible(true);
     }
 
     public static void main(String[] args) {

@@ -2,20 +2,35 @@ package com.project.golf.gui;
 
 import com.project.golf.users.*;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+
+import javax.swing.*;
 
 /**
  * AdminLoginGUI.java
  *
- * Admin login window to verify credentials and open server control panel.
+ * Authentication interface for server administrators.
+ * Validates credentials and launches admin control panel on success.
+ *
+ * Data structures: JTextField for username, JPasswordField for password,
+ * JButton for login and password visibility toggle. UserManager for authentication.
+ * Algorithm: Credential verification against UserManager database, admin privilege check,
+ * conditional window launch based on authentication result.
+ * Features: Username/password input with validation, password visibility toggle,
+ * authentication with admin privilege verification, admin panel navigation.
+ *
+ * @author Ethan Billau (ebillau), L15
+ *
+ * @version December 7, 2025
  */
+
 public class AdminLoginGUI extends JFrame implements ActionListener {
-    private final JTextField usernameField;
-    private final JPasswordField passwordField;
-    private final JButton loginButton, showHideButton;
-    private final UserManager manager;
+    private final JTextField usernameField;  // input field for administrator username
+    private final JPasswordField passwordField;  // input field for administrator password
+    private final JButton loginButton;  // button to submit login credentials
+    private final JButton showHideButton;  // button to toggle password visibility
+    private final UserManager manager;  // user manager for credential verification
 
     public AdminLoginGUI() {
         manager = new UserManager();
@@ -55,7 +70,8 @@ public class AdminLoginGUI extends JFrame implements ActionListener {
 
         passwordField = new JPasswordField(16);
         passwordField.setMaximumSize(new Dimension(250, usernameField.getPreferredSize().height * 2));
-        passwordField.setMinimumSize(new Dimension(25, usernameField.getPreferredSize().height));        passwordField.setAlignmentX(CENTER_ALIGNMENT);
+        passwordField.setMinimumSize(new Dimension(25, usernameField.getPreferredSize().height));
+        passwordField.setAlignmentX(CENTER_ALIGNMENT);
         panel.add(passwordField);
 
         showHideButton = new JButton("Show");
@@ -94,7 +110,7 @@ public class AdminLoginGUI extends JFrame implements ActionListener {
                 passwordField.setEchoChar((char) 0); // Show plaintext
                 showHideButton.setText("Hide");
             } else {
-                passwordField.setEchoChar('*'); // Hide with asterisks
+                passwordField.setEchoChar('\u2022'); // Hide with bullets in UniCode
                 showHideButton.setText("Show");
             }
         }

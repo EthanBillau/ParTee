@@ -5,22 +5,33 @@ import java.util.Objects;
 /**
  * Reservations.java
  *
- * Reservations class for managing golf course tee time reservations Implements
- * ReservationsInterface
+ * Manages individual golf course tee time reservations with payment and approval tracking.
+ * Core model class for golf booking system storing all reservation details.
+ *
+ * Data structures: String fields for ID, username, date, time, teeBox;
+ * int partySize, double price for cost calculation; boolean flags isPaid and isPending
+ * for state tracking.
+ * Algorithm: Direct storage of reservation attributes with getter/setter accessors,
+ * equals/hashCode based on reservationId, toFileString() serialization for persistence.
+ * Features: Reservation creation, payment state tracking, approval status management,
+ * file serialization, object comparison.
  *
  * @author Anoushka Chakravarty (chakr181), Aman Wakankar (awakanka), L15
+ *
  * @version November 6, 2025
  */
+
 public class Reservations implements ReservationsInterface {
 
-    private String reservationId;
-    private String username;
-    private String date;
-    private String time;
-    private int partySize;
-    private String teeBox;
-    private double price;
-    private boolean isPaid;
+    private String reservationId;  // unique identifier for this reservation
+    private String username;  // username of the user who made this reservation
+    private String date;  // tee time date in system date format (e.g., MM/DD/YYYY)
+    private String time;  // tee time in system time format (e.g., HH:MM AM/PM)
+    private int partySize;  // number of golfers in the party
+    private String teeBox;  // which tee box or hole designation
+    private double price;  // total cost of the reservation
+    private boolean isPaid;  // true if payment has been received
+    private boolean isPending;  // true if awaiting admin approval
 
     /**
      * Constructor for Reservations (defaults to unpaid)
@@ -43,6 +54,7 @@ public class Reservations implements ReservationsInterface {
         this.teeBox = teeBox;
         this.price = price;
         this.isPaid = false; // Default to unpaid
+        this.isPending = false; // Default to confirmed
     }
 
     /**
@@ -68,6 +80,33 @@ public class Reservations implements ReservationsInterface {
         this.teeBox = teeBox;
         this.price = price;
         this.isPaid = isPaid;
+        this.isPending = false; // Default to confirmed
+    }
+
+    /**
+     * Constructor for Reservations with all fields including pending status
+     *
+     * @param reservationId unique identifier for the reservation
+     * @param username user who made the reservation
+     * @param date date of the tee time
+     * @param time time of the tee time
+     * @param partySize number of golfers
+     * @param teeBox which tee box/hole
+     * @param price total cost of reservation
+     * @param isPaid whether the reservation has been paid for
+     * @param isPending whether the reservation is pending admin approval
+     */
+    public Reservations(String reservationId, String username, String date,
+            String time, int partySize, String teeBox, double price, boolean isPaid, boolean isPending) {
+        this.reservationId = reservationId;
+        this.username = username;
+        this.date = date;
+        this.time = time;
+        this.partySize = partySize;
+        this.teeBox = teeBox;
+        this.price = price;
+        this.isPaid = isPaid;
+        this.isPending = isPending;
     }
 
     /**
@@ -151,6 +190,24 @@ public class Reservations implements ReservationsInterface {
     }
 
     /**
+     * Gets pending status
+     *
+     * @return true if pending admin approval, false otherwise
+     */
+    public boolean isPending() {
+        return isPending;
+    }
+
+    /**
+     * Sets pending status
+     *
+     * @param pending whether this reservation is pending approval
+     */
+    public void setPending(boolean pending) {
+        this.isPending = pending;
+    }
+
+    /**
      * Indicates if this reservation is an event
      * 
      * @return false, unless overridden in subclass
@@ -208,8 +265,8 @@ public class Reservations implements ReservationsInterface {
      */
     @Override
     public String toFileString() {
-        return "%s,%s,%s,%s,%d,%s,%.2f,%b".formatted(
-                reservationId, username, date, time, partySize, teeBox, price, isPaid);
+        return String.format("%s,%s,%s,%s,%d,%s,%.2f,%b,%b",
+                reservationId, username, date, time, partySize, teeBox, price, isPaid, isPending);
     }
 
     /**
@@ -227,9 +284,9 @@ public class Reservations implements ReservationsInterface {
         try {
             String[] parts = fileString.split(",");
 
-            // EVENT FORMAT: EVENT,id,user,date,time,party,tee,price,isPaid,endDate,endTime
+            // EVENT FORMAT: EVENT,id,user,date,time,party,tee,price,isPaid,endDate,endTime[,isPending]
             if (parts[0].equals("EVENT")) {
-                return new com.project.golf.events.Event(
+                com.project.golf.events.Event event = new com.project.golf.events.Event(
                         parts[1], // reservationId
                         parts[2], // username
                         parts[3], // date
@@ -240,19 +297,29 @@ public class Reservations implements ReservationsInterface {
                         parts[9], // endDate
                         parts[10] // endTime
                 );
+                // Only set pending if the flag exists (backward compatible)
+                if (parts.length >= 12) {
+                    event.setPending(Boolean.parseBoolean(parts[11]));
+                }
+                return event;
             }
 
-            // STANDARD RESERVATIONS
-            if (parts.length != 8) {
+            // STANDARD RESERVATIONS - support both old (8 parts) and new (9 parts) formats
+            if (parts.length < 8) {
                 return null;
             }
 
-            return new Reservations(
+            Reservations reservation = new Reservations(
                     parts[0], parts[1], parts[2], parts[3],
                     Integer.parseInt(parts[4]), parts[5],
                     Double.parseDouble(parts[6]),
                     Boolean.parseBoolean(parts[7])
             );
+            // Only set pending if the flag exists (backward compatible)
+            if (parts.length >= 9) {
+                reservation.setPending(Boolean.parseBoolean(parts[8]));
+            }
+            return reservation;
 
         } catch (Exception e) {
             return null;
@@ -266,15 +333,8 @@ public class Reservations implements ReservationsInterface {
      */
     @Override
     public String toString() {
-        return ("""
-                Reservation ID: %s
-                Username: %s
-                Date: %s
-                Time: %s
-                Party Size: %d
-                Tee Box: %s
-                Price: $%.2f
-                Paid: %s""").formatted(
+        return String.format("Reservation ID: %s\nUsername: %s\nDate: %s\nTime: %s\n"
+                + "Party Size: %d\nTee Box: %s\nPrice: $%.2f\nPaid: %s",
                 reservationId, username, date, time, partySize,
                 teeBox, price, isPaid ? "Yes" : "No");
     }

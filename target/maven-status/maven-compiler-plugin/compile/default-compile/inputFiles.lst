@@ -10,12 +10,15 @@ C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\AdminLoginGUI.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\BackgroundPanel.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\ChatBotPanelGemini25Flash.java
+C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\ConflictReviewDialog.java
+C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\EventApprovalGUI.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\LoginGUI.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\MainMenuGUI.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\MakeReservationGUI.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\ManageReservationsGUI.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\NoAccountGUI.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\ServerController.java
+C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\gui\ServerControllerInterface.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\reservation\Reservations.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\reservation\ReservationsInterface.java
 C:\Users\Ethan\Downloads\CS 180 Proyecto con AI\CS180GroupProject\src\main\java\com\project\golf\reservation\TeeTime.java

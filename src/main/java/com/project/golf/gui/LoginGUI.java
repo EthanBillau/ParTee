@@ -3,28 +3,37 @@ package com.project.golf.gui;
 import com.project.golf.client.*;
 
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
 import java.io.IOException;
-import java.util.concurrent.ThreadLocalRandom;
+
 import javax.swing.*;
 
 /**
  * LoginGUI.java
  *
- * GUI for customer users Login, menu, and booking/reservation managment
+ * Primary authentication interface for ParTee golf reservation system.
+ * Handles user login with username/password, password reset via one-time codes,
+ * account creation for new users, and navigation to main application.
  *
- * @author Connor Landzettel (clandzet), L15
+ * Data structures: JTextField for credentials, JPasswordField for secure password input,
+ * Session variables for one-time password recovery mechanism.
+ * Algorithm: Validates credentials against server, manages user sessions, routes to appropriate GUI screens.
+ * Features: Login, account creation, password recovery, show/hide password toggle.
  *
- * @version 12/4/2025
+ * @author Ethan Billau (ebillau), Connor Landzettel (clandzet), Anoushka Chakravarty (chakr181), L15
+ *
+ * @version December 6, 2025
  */
 
 public class LoginGUI extends JFrame implements ActionListener {
 
-    private static Client client;
-    private String currUsername;
-    private final String serverHost = "localhost";
-    private final int serverPort = 5050;
+    private static Client client;                  // client connection to server
+    private String currUsername;                   // username of currently authenticating user
+
+    private final String serverHost = "localhost";  // set to local host to run server client both locally by default
+    // private final String serverHost = "serverIPgoesHere"; // to run server remotely, set to server IP
+
+    private final int serverPort = 5050;               // server port number
 
     private JButton loginButton;
     private JButton signupButton;
@@ -45,7 +54,7 @@ public class LoginGUI extends JFrame implements ActionListener {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JLabel title = new JLabel("Golf Registration Login");
+        JLabel title = new JLabel("ParTee Login");
         title.setAlignmentX(CENTER_ALIGNMENT);
         title.setFont(new Font("Arial", Font.BOLD, 24));
         panel.add(title);
@@ -132,7 +141,7 @@ public class LoginGUI extends JFrame implements ActionListener {
                 passwordField.setEchoChar((char) 0); // Removes masking
                 showHideButton.setText("Hide");
             } else {
-                passwordField.setEchoChar('*'); // Mask with asterisks
+                passwordField.setEchoChar('\u2022'); // Mask with bullets -- changed to Unicode
                 showHideButton.setText("Show");
             }
         } else if (e.getSource() == forgotPasswordButton) {
@@ -141,9 +150,11 @@ public class LoginGUI extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
-        client = new Client("localhost", 5050);
+        client = new Client("localhost", 5050); // set to local host to run server client both locally by default
+        // client = new Client("serverIPgoesHere", 5050); // to run server remotely, set to server IP
         try {
-            client.connect("localhost", 5050);
+            client.connect("localhost", 5050); // set to local host to run server client both locally by default
+            // client.connect("serverIPgoesHere", 5050); // to run server remotely, set to server IP
         } catch (Exception e) {
         }
 
@@ -182,10 +193,29 @@ public class LoginGUI extends JFrame implements ActionListener {
          * If user doesn't exist or has no email, show error.
          */
         new Thread(() -> {
-            com.project.golf.database.Database db = com.project.golf.database.Database.getInstance();
-            String email = db.getUserEmail(username);
+            String email = null;
             
-            if (email == null || email.isEmpty()) {
+            // Try to get email from server if connected
+            if (client != null) {
+                try {
+                    String response = client.getUserEmail(username);
+                    if (response != null && response.startsWith("RESP|OK|")) {
+                        email = response.substring(8); // Remove "RESP|OK|"
+                    }
+                } catch (IOException ex) {
+                    System.err.println("Error fetching user email from server: " + ex.getMessage());
+                }
+            }
+            
+            // Fallback to local database if server not available or failed
+            if (email == null) {
+                com.project.golf.database.Database db = com.project.golf.database.Database.getInstance();
+                email = db.getUserEmail(username);
+            }
+            
+            final String userEmail = email;
+            
+            if (userEmail == null || userEmail.isEmpty()) {
                 SwingUtilities.invokeLater(() -> {
                     JOptionPane.showMessageDialog(this,
                         "Username not found or no email on file.\nPlease contact an administrator.",
@@ -199,7 +229,7 @@ public class LoginGUI extends JFrame implements ActionListener {
              * Generate 6-digit one-time code.
              * Store it for validation when user tries to log in.
              */
-            oneTimeCode = "%06d".formatted((int) (ThreadLocalRandom.current().nextDouble() * 1000000));
+            oneTimeCode = String.format("%06d", (int)(Math.random() * 1000000));
             oneTimeCodeUsername = username;
             
             /**
@@ -207,7 +237,7 @@ public class LoginGUI extends JFrame implements ActionListener {
              * Display message based on success/failure.
              */
             boolean emailSent = com.project.golf.utils.EmailSender.sendEmail(
-                email,
+                userEmail,
                 "Password Reset Code - Par-Tee Golf",
                 "Your one-time login code is: " + oneTimeCode + "\n\n" +
                 "Enter this code in the password field to log in.\n" +
@@ -218,9 +248,8 @@ public class LoginGUI extends JFrame implements ActionListener {
             SwingUtilities.invokeLater(() -> {
                 if (emailSent) {
                     JOptionPane.showMessageDialog(this,
-                        """
-                        A one-time login code has been sent to your email.
-                        Please check your email and enter the code in the password field.""",
+                        "A one-time login code has been sent to your email.\n" +
+                        "Please check your email and enter the code in the password field.",
                         "Code Sent",
                         JOptionPane.INFORMATION_MESSAGE);
                     usernameField.setText(username);
@@ -243,11 +272,13 @@ public class LoginGUI extends JFrame implements ActionListener {
          */
         if (oneTimeCode != null && oneTimeCodeUsername != null && 
             oneTimeCodeUsername.equals(u) && oneTimeCode.equals(p)) {
-            // One-time code is valid, clear it and log in
+            // One-time code is valid, clear it and prompt for new password
             oneTimeCode = null;
             oneTimeCodeUsername = null;
             currUsername = u;
-            SwingUtilities.invokeLater(() -> switchToMainMenu());
+            
+            // Show password change dialog
+            SwingUtilities.invokeLater(() -> showPasswordChangeDialog(u));
             return;
         }
         
@@ -258,15 +289,35 @@ public class LoginGUI extends JFrame implements ActionListener {
         new Thread(() -> {
             try {
                 client.connect(serverHost, serverPort);
-                boolean ok = client.login(u, p);
+                String response = client.login(u, p);
                 /**
                  * Switch back to UI thread for any GUI updates.
                  * This prevents threading issues with Swing.
                  */
                 SwingUtilities.invokeLater(() -> {
-                    if (ok) {
+                    if (response != null && response.startsWith("RESP|OK")) {
                         currUsername = u;
-                        switchToMainMenu();
+                        
+                        // Check if user is logging in with temporary password
+                        if (p.equals("TempPassword")) {
+                            showPasswordChangeDialog(u);
+                        } else {
+                            switchToMainMenu();
+                        }
+                    } else if (response != null && response.contains("UNPAID")) {
+                        /*
+                         * User credentials are correct but account hasn't been paid.
+                         * Extract the custom message from the response.
+                         */
+                        String message = "Your account has not been paid.\n" +
+                                         "Please contact the golf course to complete payment.";
+                        if (response.split("\\|").length > 3) {
+                            message = response.split("\\|", 4)[3];
+                        }
+                        JOptionPane.showMessageDialog(this,
+                            message,
+                            "Payment Required",
+                            JOptionPane.WARNING_MESSAGE);
                     } else {
                         /**
                          * Show error dialog with two options.
@@ -298,5 +349,136 @@ public class LoginGUI extends JFrame implements ActionListener {
     private void switchToMainMenu() {
         // Delegate to switchToMainMenuGUI to ensure client is passed
         switchToMainMenuGUI(currUsername);
+    }
+    
+    private void showPasswordChangeDialog(String username) {
+        /**
+         * Create a dialog for the user to set a new password after using one-time code.
+         */
+        JDialog passwordDialog = new JDialog(this, "Change Password", true);
+        passwordDialog.setSize(400, 300);
+        passwordDialog.setLocationRelativeTo(this);
+        passwordDialog.setLayout(new BorderLayout(10, 10));
+        
+        JPanel contentPanel = new JPanel();
+        contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+        contentPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        
+        JLabel instructionLabel = new JLabel("Please enter a new password for your account:");
+        instructionLabel.setAlignmentX(CENTER_ALIGNMENT);
+        contentPanel.add(instructionLabel);
+        contentPanel.add(Box.createVerticalStrut(10));
+        
+        JLabel newPasswordLabel = new JLabel("New Password:");
+        newPasswordLabel.setAlignmentX(CENTER_ALIGNMENT);
+        contentPanel.add(newPasswordLabel);
+        
+        JPasswordField newPasswordField = new JPasswordField(20);
+        newPasswordField.setMaximumSize(new Dimension(250, 30));
+        newPasswordField.setAlignmentX(CENTER_ALIGNMENT);
+        contentPanel.add(newPasswordField);
+        
+        contentPanel.add(Box.createVerticalStrut(10));
+        
+        JLabel confirmPasswordLabel = new JLabel("Confirm Password:");
+        confirmPasswordLabel.setAlignmentX(CENTER_ALIGNMENT);
+        contentPanel.add(confirmPasswordLabel);
+        
+        JPasswordField confirmPasswordField = new JPasswordField(20);
+        confirmPasswordField.setMaximumSize(new Dimension(250, 30));
+        confirmPasswordField.setAlignmentX(CENTER_ALIGNMENT);
+        contentPanel.add(confirmPasswordField);
+        
+        passwordDialog.add(contentPanel, BorderLayout.CENTER);
+        
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        JButton submitButton = new JButton("Change Password");
+        JButton cancelButton = new JButton("Cancel");
+        
+        submitButton.addActionListener(e -> {
+            String newPassword = new String(newPasswordField.getPassword());
+            String confirmPassword = new String(confirmPasswordField.getPassword());
+            
+            if (newPassword.isEmpty()) {
+                JOptionPane.showMessageDialog(passwordDialog,
+                    "Password cannot be empty.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            if (!newPassword.equals(confirmPassword)) {
+                JOptionPane.showMessageDialog(passwordDialog,
+                    "Passwords do not match.",
+                    "Error",
+                    JOptionPane.ERROR_MESSAGE);
+                return;
+            }
+            
+            // Update password on server
+            new Thread(() -> {
+                try {
+                    // Get current user data first
+                    String response = client.getUser(username);
+                    if (response != null && response.startsWith("RESP|OK|")) {
+                        String userData = response.substring(8);
+                        com.project.golf.users.User user = com.project.golf.users.User.fromFileString(userData);
+                        
+                        if (user != null) {
+                            // Update password on server
+                            boolean success = client.updateUser(
+                                username,
+                                username,
+                                newPassword,
+                                user.getFirstName(),
+                                user.getLastName(),
+                                user.getEmail()
+                            );
+                            
+                            SwingUtilities.invokeLater(() -> {
+                                if (success) {
+                                    JOptionPane.showMessageDialog(passwordDialog,
+                                        "Password changed successfully!",
+                                        "Success",
+                                        JOptionPane.INFORMATION_MESSAGE);
+                                    passwordDialog.dispose();
+                                    switchToMainMenu();
+                                } else {
+                                    JOptionPane.showMessageDialog(passwordDialog,
+                                        "Failed to update password on server.",
+                                        "Error",
+                                        JOptionPane.ERROR_MESSAGE);
+                                }
+                            });
+                        } else {
+                            SwingUtilities.invokeLater(() -> {
+                                JOptionPane.showMessageDialog(passwordDialog,
+                                    "Failed to retrieve user information.",
+                                    "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                            });
+                        }
+                    }
+                } catch (IOException ex) {
+                    SwingUtilities.invokeLater(() -> {
+                        JOptionPane.showMessageDialog(passwordDialog,
+                            "Connection error: " + ex.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    });
+                }
+            }).start();
+        });
+        
+        cancelButton.addActionListener(e -> {
+            passwordDialog.dispose();
+            // Don't log them in if they cancel
+        });
+        
+        buttonPanel.add(submitButton);
+        buttonPanel.add(cancelButton);
+        passwordDialog.add(buttonPanel, BorderLayout.SOUTH);
+        
+        passwordDialog.setVisible(true);
     }
 }

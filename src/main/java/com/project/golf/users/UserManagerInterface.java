@@ -3,9 +3,16 @@ package com.project.golf.users;
 /**
  * UserManagerInterface.java
  * 
- * Interface for UserManager class
+ * Interface defining user account management operations with persistence.
+ * Specifies contracts for user CRUD operations and file-based synchronization.
+ * 
+ * Data structures: User collection management with file persistence.
+ * Algorithm: File I/O synchronization strategy for user data persistence.
+ * Features: User account creation/modification/deletion, file-based persistence,
+ * credential validation, bulk user operations.
  * 
  * @author Connor Landzettel (clandzet), L15
+ *
  * @version November 20, 2025
  */
 

@@ -9,11 +9,17 @@ import java.io.IOException;
 import java.util.ArrayList;
 
 /**
- * DatabaseInterface
+ * DatabaseInterface.java
  * 
- * Interface for the database with all data
+ * Interface defining central data management operations for golf reservation system.
+ * Specifies contracts for user, reservation, event, and settings data operations.
  *
+ * Data structures: User management, reservation/event storage, course settings.
+ * Algorithm: Persistence layer operations with file-based caching strategy.
+ * Features: CRUD operations for all domain objects, thread-safe access patterns,
+ * file persistence synchronization, data query and filtering.
  * @author Aman Wakankar (awakanka), L15
+ * 
  * @version November 9, 2025
  */
 

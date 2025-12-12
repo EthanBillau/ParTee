@@ -5,5 +5,6 @@
     "lib/activation-1.1.1.jar",
     "lib/junit-platform-console-standalone-6.0.1.jar"
   ],
-  "java.project.outputPath": "out"
+  "java.project.outputPath": "out",
+  "java.configuration.updateBuildConfiguration": "interactive"
 }

@@ -1,67 +1,103 @@
 package com.project.golf.gui;
 
-import com.project.golf.client.Client;
-import com.project.golf.users.User;
-import com.project.golf.users.UserManager;
+import com.project.golf.client.*;
+import com.project.golf.users.*;
+
+import java.awt.*;
+import java.awt.event.*;
+import java.io.IOException;
 
 import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.io.IOException;
 
 /**
  * AccountOptionsGUI.java
  *
- * GUI for customer users to edit account details.
+ * User account profile editing interface for customers.
+ * Allows modification of username, password, name, and email with validation.
  *
- * Uses AccountBackgroundPanel for a properly scaled background image.
+ * Data structures: User object for account data, UserManager for persistence,
+ * Client for server communication. JButton array for edit options, JTextField/JPasswordField
+ * for input capture. AccountBackgroundPanel for themed rendering.
+ * Algorithm: Field-by-field update with password verification, dual-field password
+ * confirmation, server synchronization of changes.
+ * Features: Username/password/email/name editing, password verification, form validation,
+ * profile persistence, background image scaling, rollback on cancel.
  *
  * @author Connor Landzettel (clandzet), L15
- * @version 12/4/2025
+ *
+ * @version December 4, 2025
  */
+
 public class AccountOptionsGUI extends JFrame implements ActionListener {
 
-    private static Client client;
-    private String currUsername;
-    private String serverHost = "localhost";
-    private int serverPort = 5050;
+    private static Client client;  // client connection for server communication
 
-    private User currentUser;
-    private UserManager userManager;
+    private User currentUser;  // current logged-in user object
+    private UserManager userManager;  // manager for user persistence and queries
 
-    private JButton changeUsernameButton;
-    private JButton changePasswordButton;
-    private JButton changeFirstNameButton;
-    private JButton changeLastNameButton;
-    private JButton changeEmailButton;
-    private JButton backButton;
+    private JButton changeUsernameButton;  // button to edit username
+    private JButton changePasswordButton;  // button to edit password
+    private JButton changeFirstNameButton;  // button to edit first name
+    private JButton changeLastNameButton;  // button to edit last name
+    private JButton changeEmailButton;  // button to edit email address
+    private JButton backButton;  // button to return to main menu
 
-    private JTextField usernameField;
-    private JPasswordField confirmPasswordField; // current password (for verification)
-    private JTextField passwordField;            // new password
-    private JTextField firstNameField;
-    private JTextField lastNameField;
-    private JTextField emailField;
+    private JTextField usernameField;  // input field for username
+    private JPasswordField confirmPasswordField;  // input for current password verification
+    private JTextField passwordField;  // input field for new password
+    private JTextField firstNameField;  // input field for first name
+    private JTextField lastNameField;  // input field for last name
+    private JTextField emailField;  // input field for email address
 
-    private String username;
+    private String username;  // current logged-in username
+    private String originalUsername;  // original username before changes
 
     public AccountOptionsGUI(String username, Client client) {
         this.username = username;
+        this.originalUsername = username; // Store original username
         AccountOptionsGUI.client = client;
-        this.currUsername = username;
 
         setTitle("Golf Course Reservation System");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-        // Load user data
+        // Always initialize userManager for username validation
         userManager = new UserManager();
-        currentUser = userManager.findUser(username);
-        if (currentUser == null) {
-            JOptionPane.showMessageDialog(this,
-                    "User '" + username + "' not found.",
-                    "User Not Found",
-                    JOptionPane.WARNING_MESSAGE);
+
+        // Load user data
+        if (client != null) {
+            // Fetch user from server
+            try {
+                String response = client.getUser(username);
+                if (response != null && response.startsWith("RESP|OK|")) {
+                    String userData = response.substring(8); // Remove "RESP|OK|"
+                    currentUser = com.project.golf.users.User.fromFileString(userData);
+                    if (currentUser == null) {
+                        JOptionPane.showMessageDialog(this,
+                                "Failed to load user data from server.",
+                                "Error",
+                                JOptionPane.ERROR_MESSAGE);
+                    }
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "User '" + username + "' not found on server.",
+                            "User Not Found",
+                            JOptionPane.WARNING_MESSAGE);
+                }
+            } catch (java.io.IOException ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Connection error: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            // Local mode - load from file
+            currentUser = userManager.findUser(username);
+            if (currentUser == null) {
+                JOptionPane.showMessageDialog(this,
+                        "User '" + username + "' not found.",
+                        "User Not Found",
+                        JOptionPane.WARNING_MESSAGE);
+            }
         }
 
         showAccountOptionsScreen();
@@ -103,13 +139,53 @@ public class AccountOptionsGUI extends JFrame implements ActionListener {
     }
 
     private void saveUsers() {
-        try {
-            userManager.saveUsersToFile();
-        } catch (IOException ioEx) {
-            JOptionPane.showMessageDialog(this,
-                    "Failed to save user data: " + ioEx.getMessage(),
-                    "Save Error",
-                    JOptionPane.ERROR_MESSAGE);
+        if (client != null) {
+            // Use client-server communication for multi-device sync
+            try {
+                boolean success = client.updateUser(
+                    originalUsername, // Use original username to find the user on server
+                    currentUser.getUsername(),
+                    currentUser.getPassword(),
+                    currentUser.getFirstName(),
+                    currentUser.getLastName(),
+                    currentUser.getEmail()
+                );
+                
+                if (success) {
+                    // Update local username references and original username if it changed
+                    this.username = currentUser.getUsername();
+                    this.originalUsername = currentUser.getUsername();
+                    
+                    JOptionPane.showMessageDialog(this,
+                            "Account information updated successfully.",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(this,
+                            "Failed to update account information on server.",
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            } catch (IOException ex) {
+                JOptionPane.showMessageDialog(this,
+                        "Connection error: " + ex.getMessage(),
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
+        } else {
+            // Local mode - save to file
+            try {
+                userManager.saveUsersToFile();
+                JOptionPane.showMessageDialog(this,
+                        "Account information updated successfully.",
+                        "Success",
+                        JOptionPane.INFORMATION_MESSAGE);
+            } catch (IOException ioEx) {
+                JOptionPane.showMessageDialog(this,
+                        "Failed to save user data: " + ioEx.getMessage(),
+                        "Save Error",
+                        JOptionPane.ERROR_MESSAGE);
+            }
         }
     }
 
@@ -137,7 +213,6 @@ public class AccountOptionsGUI extends JFrame implements ActionListener {
         currentUser.setUsername(newU);
         // update local fields so going back uses the new username
         this.username = newU;
-        this.currUsername = newU;
 
         saveUsers();
     }
@@ -208,6 +283,19 @@ public class AccountOptionsGUI extends JFrame implements ActionListener {
         AccountBackgroundPanel panel = new AccountBackgroundPanel();
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JPanel topPanel = new JPanel(new BorderLayout());
+        topPanel.setOpaque(false);
+        topPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
+
+        // Back button
+        backButton = new JButton("← Back");
+        backButton.setFont(new Font("Arial", Font.BOLD, 14));
+        backButton.setBackground(Color.WHITE);
+        backButton.setFocusPainted(false);
+        backButton.addActionListener(this);
+        topPanel.add(backButton, BorderLayout.WEST);
+        panel.add(topPanel);
 
         JLabel title = new JLabel("Account Options");
         title.setAlignmentX(CENTER_ALIGNMENT);
@@ -340,12 +428,6 @@ public class AccountOptionsGUI extends JFrame implements ActionListener {
         panel.add(changeEmailButton);
 
         panel.add(Box.createVerticalStrut(10));
-
-        // Back button
-        backButton = new JButton("Back to Main Menu");
-        backButton.setAlignmentX(CENTER_ALIGNMENT);
-        backButton.addActionListener(this);
-        panel.add(backButton);
 
         setContentPane(panel);
 

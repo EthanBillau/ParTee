@@ -7,11 +7,15 @@ import javax.swing.*;
 /**
  * ServerMain.java
  * 
- * Entry point for the golf course server application.
- * Initializes a Server instance on a specified port and starts it.
- * Handles exceptions if the server fails to start.
+ * Application entry point for golf reservation server with admin GUI.
+ * Launches the administrator login interface for server control.
+ *
+ * Data structures: AdminLoginGUI for authentication interface.
+ * Algorithm: Swing event-dispatch thread invocation for thread-safe GUI initialization.
+ * Features: Server application startup, admin interface initialization, exception handling.
  *
  * @author Ethan Billau (ethanbillau), L15
+ *
  * @version November 21, 2025
  */
 

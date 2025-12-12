@@ -5,25 +5,31 @@ import java.util.*;
 /**
  * CourseSettings.java
  * 
- * Stores configuration and operational settings for the golf course.
- * This includes hours of operation, pricing defaults, tee box configuration,
- * and booking windows. The server uses this to manage course operations.
+ * Configuration and operational settings for golf course management.
+ * Stores course details, hours of operation, pricing, and booking constraints.
+ * Used by server to enforce business rules for tee time scheduling and reservations.
+ *
+ * Data structures: String fields for time/name, int fields for numeric settings,
+ * HashMap for day-of-week operational status.
+ * Algorithm: Direct property access with validation. Settings loaded/saved to file format.
+ * Features: Course hours, pricing defaults, party size limits, advance booking windows.
  *
  * @author Nikhil Kodali (kodali3), L15
+ *
  * @version November 9, 2025
  */
 
 public class CourseSettings implements CourseSettingsInterface {
     
-    private String courseName;
-    private String openingTime;
-    private String closingTime;
-    private double defaultPricePerPerson;
-    private int teeTimeInterval; // Time (minutes) between slots
-    private int maxPartySize;
-    private int numberOfTeeBoxes;
-    private int advanceBookingDays;
-    private Map<String, Boolean> daysOfOperation; // Which days the course is open
+    private String courseName;                      // name of the golf course
+    private String openingTime;                     // course opening time (HH:MM)
+    private String closingTime;                     // course closing time (HH:MM)
+    private double defaultPricePerPerson;           // default price per golfer
+    private int teeTimeInterval;                    // minutes between consecutive tee times
+    private int maxPartySize;                       // maximum golfers per reservation
+    private int numberOfTeeBoxes;                   // number of holes/tee boxes
+    private int advanceBookingDays;                 // days in advance users can book
+    private Map<String, Boolean> daysOfOperation;   // which days course is open
     
  
     //Constructor with default values
@@ -310,8 +316,8 @@ public class CourseSettings implements CourseSettingsInterface {
     
     @Override
     public String toString() {
-        return "CourseSettings[%s | Hours: %s-%s | $%.2f | %d tee boxes | Book %d days ahead]".formatted(
-                courseName, openingTime, closingTime, defaultPricePerPerson,
-                numberOfTeeBoxes, advanceBookingDays);
+        return String.format("CourseSettings[%s | Hours: %s-%s | $%.2f | %d tee boxes | Book %d days ahead]",
+                           courseName, openingTime, closingTime, defaultPricePerPerson,
+                           numberOfTeeBoxes, advanceBookingDays);
     }
 }

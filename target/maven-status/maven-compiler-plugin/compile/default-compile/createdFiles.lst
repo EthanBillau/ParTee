@@ -1,4 +1,3 @@
-com\project\golf\gui\ManageReservationsGUI$2.class
 com\project\golf\users\UserInterface.class
 com\project\golf\gui\CalendarDialog.class
 com\project\golf\database\Database.class
@@ -14,12 +13,14 @@ com\project\golf\client\Client.class
 com\project\golf\gui\NoAccountGUI.class
 com\project\golf\reservation\TeeTime.class
 com\project\golf\server\ServerWorker.class
+com\project\golf\gui\EventApprovalGUI.class
 com\project\golf\reservation\Reservations.class
 com\project\golf\reservation\ReservationsInterface.class
 com\project\golf\gui\AdminLoginGUI.class
 com\project\golf\users\UserManager.class
 com\project\golf\gui\AccountOptionsGUI.class
 com\project\golf\gui\AdminControlGUI.class
+com\project\golf\gui\ServerControllerInterface.class
 com\project\golf\gui\ChatBotPanelGemini25Flash$1.class
 com\project\golf\gui\ChatBotPanelGemini25Flash.class
 com\project\golf\gui\MakeReservationGUI.class
@@ -31,6 +32,7 @@ com\project\golf\gui\ManageReservationsGUI$1.class
 com\project\golf\gui\MainMenuGUI.class
 com\project\golf\gui\LoginGUI.class
 com\project\golf\server\Server.class
+com\project\golf\gui\ConflictReviewDialog$1.class
 com\project\golf\gui\ManageReservationsGUI$ActionsCellRenderer.class
 com\project\golf\settings\CourseSettings.class
 com\project\golf\utils\EmailSender.class
@@ -41,3 +43,5 @@ com\project\golf\utils\EmailSender$2.class
 com\project\golf\gui\BackgroundPanel.class
 com\project\golf\users\User.class
 com\project\golf\gui\AccountBackgroundPanel.class
+com\project\golf\gui\ConflictReviewDialog.class
+com\project\golf\gui\EventApprovalGUI$1.class

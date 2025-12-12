@@ -1,9 +1,9 @@
 package com.project.golf.database;
 
-import com.project.golf.users.*;
-import com.project.golf.reservation.*;
 import com.project.golf.events.*;
+import com.project.golf.reservation.*;
 import com.project.golf.settings.*;
+import com.project.golf.users.*;
 
 import java.io.*;
 import java.util.ArrayList;
@@ -12,36 +12,44 @@ import java.util.concurrent.locks.ReentrantReadWriteLock;
 /**
  * Database.java
  * 
- * Database for managing all users, reservations, and events in the golf course reservation system. 
- * Implements data persistence by reading from and writing to disk.
+ * Central data management system for the ParTee golf reservation system.
+ * Implements Singleton pattern to ensure single instance manages all persistent data.
+ * Thread-safe operations using ReentrantReadWriteLock for concurrent access.
  *
- * @author Aman Wakankar (awakanka), Anoushka Chakravarty (chakr181), Connor Landzettel (clandzet), Nikhil Kodali (kodali3), Ethan Billau (ethanbillau), L15
+ * Data structures: ArrayLists for users, reservations, events, and tee times.
+ * Algorithm: File-based persistence with in-memory caching for fast access.
+ * Major features: User management, reservation handling, event approval, tee time scheduling.
+ *
+ * @author Aman Wakankar (awakanka), Anoushka Chakravarty (chakr181),
+ *         Connor Landzettel (clandzet), Nikhil Kodali (kodali3), Ethan Billau (ethanbillau), L15
+ *
  * @version November 9, 2025
  */
 
 public class Database implements DatabaseInterface {
 
-    //Database file (singleton)
+    // Singleton instance - single Database manages all data
     private static Database instance = null;
     
-    // Data storage
-    private ArrayList<User> users;
-    private ArrayList<Reservations> reservations;
-    private ArrayList<Event> events;
-    private ArrayList<TeeTime> teeTimes;
-    private CourseSettings courseSettings;
+    // In-memory data structures for system data
+    private ArrayList<User> users;                     // all registered users
+    private ArrayList<Reservations> reservations;     // all golf reservations
+    private ArrayList<Event> events;                   // all pending events
+    private ArrayList<TeeTime> teeTimes;               // all available tee times
+    private CourseSettings courseSettings;             // golf course operational settings
     
-    // File paths for persistence
-    private static final String USERS_FILE = "users.txt";
-    private static final String RESERVATIONS_FILE = "reservations.txt";
-    private static final String EVENTS_FILE = "events.txt";
-    private static final String TEETIMES_FILE = "teetimes.txt";
-    private static final String SETTINGS_FILE = "settings.txt";
+    // File paths for data persistence
+    private static final String USERS_FILE = "users.txt";              // user account storage
+    private static final String RESERVATIONS_FILE = "reservations.txt"; // reservation records
+    // Note: Events are stored as part of reservations.txt (Event extends Reservations)
+    // Pending status is tracked using isPending flag on each reservation/event
+    private static final String TEETIMES_FILE = "teetimes.txt";        // available tee time slots
+    private static final String SETTINGS_FILE = "settings.txt";        // course configuration
     
-    // Thread safety using ReentrantReadWriteLock for better concurrency
-    private final ReentrantReadWriteLock lock;
-    private final ReentrantReadWriteLock.ReadLock readLock;
-    private final ReentrantReadWriteLock.WriteLock writeLock;
+    // Thread synchronization for concurrent access safety
+    private final ReentrantReadWriteLock lock;                  // main synchronization lock
+    private final ReentrantReadWriteLock.ReadLock readLock;     // lock for read operations
+    private final ReentrantReadWriteLock.WriteLock writeLock;   // lock for write operations
     
     /**
      * Private constructor for Database (Singleton pattern which is like static but different)
@@ -246,6 +254,59 @@ public class Database implements DatabaseInterface {
         }
     }
     
+    /**
+     * Updates an existing user's information
+     * Thread safe operation using write lock
+     * 
+     * @param oldUsername the current username of the user to update
+     * @param newUsername the new username (can be same as old)
+     * @param password the new password
+     * @param firstName the new first name
+     * @param lastName the new last name
+     * @param email the new email
+     * @return true if update was successful, false if user not found or new username already taken
+     */
+    public boolean updateUser(String oldUsername, String newUsername, String password, 
+                             String firstName, String lastName, String email) {
+        if (oldUsername == null || newUsername == null) {
+            return false;
+        }
+        
+        writeLock.lock();
+        try {
+            User user = findUser(oldUsername);
+            if (user == null) {
+                return false;
+            }
+            
+            // Check if new username is taken by another user
+            if (!oldUsername.equals(newUsername)) {
+                User existing = findUser(newUsername);
+                if (existing != null) {
+                    return false; // Username already taken
+                }
+            }
+            
+            // Update user fields
+            user.setUsername(newUsername);
+            user.setPassword(password);
+            user.setFirstName(firstName);
+            user.setLastName(lastName);
+            user.setEmail(email);
+            
+            // Save to file
+            try {
+                saveToFile();
+                return true;
+            } catch (IOException e) {
+                System.err.println("Error saving users after update: " + e.getMessage());
+                return false;
+            }
+        } finally {
+            writeLock.unlock();
+        }
+    }
+    
     // RESERVATION MANAGMENT --------------------------------------------------
     
     /**
@@ -295,13 +356,24 @@ public class Database implements DatabaseInterface {
         
         writeLock.lock();
         try {
+            boolean removed = false;
             for (int i = 0; i < reservations.size(); i++) {
                 if (reservations.get(i).getReservationId().equals(reservationId)) {
-                    reservations.remove(i);
-                    return true;
+                    Reservations r = reservations.remove(i);
+                    // If it's an event, also remove from events list by ID
+                    if (r instanceof Event) {
+                        for (int j = 0; j < events.size(); j++) {
+                            if (events.get(j).getReservationId().equals(reservationId)) {
+                                events.remove(j);
+                                break;
+                            }
+                        }
+                    }
+                    removed = true;
+                    break;
                 }
             }
-            return false;
+            return removed;
         } finally {
             writeLock.unlock();
         }
@@ -517,6 +589,370 @@ public class Database implements DatabaseInterface {
         }
     }
     
+    // PENDING EVENTS MANAGEMENT (Admin Approval Required) --------------------------------------------------
+    
+    /**
+     * Adds an event to the pending list (awaiting admin approval)
+     * Thread-safe operation using write lock
+     * 
+     * @param event the Event object to add to pending
+     * @return true if event was added successfully
+     */
+    public boolean addPendingEvent(Event event) {
+        if (event == null) {
+            return false;
+        }
+        
+        writeLock.lock();
+        try {
+            event.setPending(true); // Mark as pending
+            reservations.add(event);  // Add to reservations list
+            // Note: events list is maintained separately and will include this automatically
+            // since Event extends Reservations and events list is rebuilt from reservations
+            if (!events.contains(event)) {
+                events.add(event);  // Add to events list for immediate conflict checking
+            }
+            return true;
+        } finally {
+            writeLock.unlock();
+        }
+    }
+    
+    /**
+     * Gets all pending events awaiting admin approval
+     * 
+     * @return ArrayList of all pending events
+     */
+    public ArrayList<Event> getAllPendingEvents() {
+        readLock.lock();
+        try {
+            ArrayList<Event> pendingList = new ArrayList<>();
+            for (Event e : events) {
+                if (e.isPending()) {
+                    pendingList.add(e);
+                }
+            }
+            return pendingList;
+        } finally {
+            readLock.unlock();
+        }
+    }
+    
+    /**
+     * Gets pending events for a specific user
+     * 
+     * @param username the username to filter by
+     * @return ArrayList of pending events for this user
+     */
+    public ArrayList<Event> getPendingEventsByUser(String username) {
+        if (username == null || username.isEmpty()) {
+            return new ArrayList<>();
+        }
+        
+        readLock.lock();
+        try {
+            ArrayList<Event> userPendingEvents = new ArrayList<>();
+            for (Event e : events) {
+                if (e.isPending() && username.equals(e.getUsername())) {
+                    userPendingEvents.add(e);
+                }
+            }
+            return userPendingEvents;
+        } finally {
+            readLock.unlock();
+        }
+    }
+    
+    /**
+     * Reloads all data from file including pending events
+     * Useful when admin GUI needs to see latest pending events
+     * 
+     * @throws IOException if there's an error reading from file
+     */
+    public void reloadPendingEvents() throws IOException {
+        // Just reload from file - pending status is stored in the file now
+        loadFromFile();
+    }
+    
+    /**
+     * Removes a pending event from the list
+     * 
+     * @param eventId the ID of the pending event to remove
+     * @return true if event was removed successfully
+     */
+    public boolean removePendingEvent(String eventId) {
+        if (eventId == null || eventId.isEmpty()) {
+            return false;
+        }
+        
+        // removeReservation already handles removing from both lists
+        return removeReservation(eventId);
+    }
+    
+    /**
+     * Finds a pending event by its ID
+     * 
+     * @param eventId the ID of the pending event
+     * @return the Event if found, null otherwise
+     */
+    public Event findPendingEvent(String eventId) {
+        if (eventId == null || eventId.isEmpty()) {
+            return null;
+        }
+        
+        readLock.lock();
+        try {
+            for (Event e : events) {
+                if (e.isPending() && e.getId().equals(eventId)) {
+                    return e;
+                }
+            }
+            return null;
+        } finally {
+            readLock.unlock();
+        }
+    }
+    
+    /**
+     * Approves a pending event and moves it to active events
+     * Also removes all conflicting reservations and events
+     * 
+     * @param eventId the ID of the pending event to approve
+     * @return ArrayList of removed items (for confirmation display), null if event not found
+     */
+    public ArrayList<Reservations> approvePendingEvent(String eventId) {
+        Event pendingEvent = findPendingEvent(eventId);
+        if (pendingEvent == null) {
+            return null;
+        }
+        
+        writeLock.lock();
+        try {
+            // Find all conflicts
+            ArrayList<Reservations> conflicts = findConflicts(pendingEvent);
+            
+            // Remove all conflicting reservations and events
+            for (Reservations conflict : conflicts) {
+                String conflictId = conflict.getReservationId();
+                if (conflict.isEvent()) {
+                    // Remove from both events and reservations lists
+                    removeEvent(conflictId);
+                    removeReservation(conflictId);
+                } else {
+                    removeReservation(conflictId);
+                }
+            }
+            
+            // Change event from pending to approved
+            pendingEvent.setPending(false);
+            
+            return conflicts;
+        } finally {
+            writeLock.unlock();
+        }
+    }
+    
+    /**
+     * Finds all reservations and events that conflict with a given event
+     * Conflicts occur when date/time ranges overlap
+     * 
+     * @param event the event to check for conflicts
+     * @return ArrayList of conflicting Reservations/Events
+     */
+    public ArrayList<Reservations> findConflicts(Event event) {
+        ArrayList<Reservations> conflicts = new ArrayList<>();
+        
+        readLock.lock();
+        try {
+            // Parse event times
+            int eventStartMinutes = parseTimeToMinutes(event.getDate(), event.getTime());
+            int eventEndMinutes = parseTimeToMinutes(event.getEndDate(), event.getEndTime());
+            
+            // Check all reservations
+            for (Reservations r : reservations) {
+                // Skip if it's the same event (don't conflict with yourself)
+                if (r.getReservationId().equals(event.getReservationId())) {
+                    continue;
+                }
+                
+                int resStartMinutes = parseTimeToMinutes(r.getDate(), r.getTime());
+                // Assume reservations last 2 hours (120 minutes)
+                int resEndMinutes = resStartMinutes + 120;
+                
+                if (timesOverlap(eventStartMinutes, eventEndMinutes, resStartMinutes, resEndMinutes)) {
+                    conflicts.add(r);
+                }
+            }
+            
+            // Check all active events
+            for (Event e : events) {
+                // Skip if it's the same event (don't conflict with yourself)
+                if (e.getId().equals(event.getId())) {
+                    continue;
+                }
+                
+                int eStartMinutes = parseTimeToMinutes(e.getDate(), e.getTime());
+                int eEndMinutes = parseTimeToMinutes(e.getEndDate(), e.getEndTime());
+                
+                if (timesOverlap(eventStartMinutes, eventEndMinutes, eStartMinutes, eEndMinutes)) {
+                    conflicts.add(e);
+                }
+            }
+            
+            return conflicts;
+        } finally {
+            readLock.unlock();
+        }
+    }
+    
+    /**
+     * Checks if a reservation/event conflicts with any existing events or reservations
+     * 
+     * @param date the date of the reservation
+     * @param time the time of the reservation
+     * @return true if there's a conflict with an active event or reservation
+     */
+    public boolean hasEventConflict(String date, String time) {
+        readLock.lock();
+        try {
+            int resStartMinutes = parseTimeToMinutes(date, time);
+            int resEndMinutes = resStartMinutes + 120; // Assume 2-hour reservation
+            
+            // Check against all active events
+            for (Event e : events) {
+                int eventStartMinutes = parseTimeToMinutes(e.getDate(), e.getTime());
+                int eventEndMinutes = parseTimeToMinutes(e.getEndDate(), e.getEndTime());
+                
+                if (timesOverlap(resStartMinutes, resEndMinutes, eventStartMinutes, eventEndMinutes)) {
+                    return true;
+                }
+            }
+            
+            return false;
+        } finally {
+            readLock.unlock();
+        }
+    }
+    
+    /**
+     * Checks if a new reservation conflicts with existing reservations or events
+     * 
+     * @param date the date of the new reservation
+     * @param time the time of the new reservation
+     * @param teeBox the tee box for the reservation
+     * @param excludeId optional reservation ID to exclude (for editing)
+     * @return true if there's a conflict
+     */
+    public boolean hasReservationConflict(String date, String time, String teeBox, String excludeId) {
+        readLock.lock();
+        try {
+            int newStartMinutes = parseTimeToMinutes(date, time);
+            int newEndMinutes = newStartMinutes + 120; // Assume 2-hour reservation
+            
+            // Check against all events - events block the ENTIRE course during their time
+            for (Reservations r : reservations) {
+                // Skip if it's the same reservation (for editing)
+                if (excludeId != null && r.getReservationId().equals(excludeId)) {
+                    continue;
+                }
+                
+                // If it's an event, check if times overlap (events block entire course)
+                if (r.isEvent()) {
+                    Event e = (Event) r;
+                    // Skip pending events - they don't block until approved
+                    if (e.isPending()) continue;
+                    
+                    int eventStartMinutes = parseTimeToMinutes(e.getDate(), e.getTime());
+                    int eventEndMinutes = parseTimeToMinutes(e.getEndDate(), e.getEndTime());
+                    
+                    if (timesOverlap(newStartMinutes, newEndMinutes, eventStartMinutes, eventEndMinutes)) {
+                        return true; // Event blocks this time slot on ALL tee boxes
+                    }
+                } else {
+                    // Regular reservation - only check same tee box
+                    if (!r.getTeeBox().equals(teeBox)) {
+                        continue;
+                    }
+                    
+                    // Skip pending reservations
+                    if (r.isPending()) continue;
+                    
+                    int resStartMinutes = parseTimeToMinutes(r.getDate(), r.getTime());
+                    int resEndMinutes = resStartMinutes + 120;
+                    
+                    if (timesOverlap(newStartMinutes, newEndMinutes, resStartMinutes, resEndMinutes)) {
+                        return true;
+                    }
+                }
+            }
+            
+            return false;
+        } finally {
+            readLock.unlock();
+        }
+    }
+    
+    /**
+     * Parses date and time to minutes since epoch for comparison
+     * Format: date "YYYY-MM-DD", time "HH:MM" or "H:MM AM/PM"
+     * 
+     * @param date the date string
+     * @param time the time string
+     * @return total minutes since a reference point
+     */
+    private int parseTimeToMinutes(String date, String time) {
+        try {
+            String[] dateParts = date.split("-");
+            int year = Integer.parseInt(dateParts[0]);
+            int month = Integer.parseInt(dateParts[1]);
+            int day = Integer.parseInt(dateParts[2]);
+            
+            // Handle both "9:00 AM" and "09:00" formats
+            int hour;
+            int minute;
+            
+            if (time.contains("AM") || time.contains("PM")) {
+                // Format: "9:00 AM" or "12:30 PM"
+                boolean isPM = time.contains("PM");
+                String timeOnly = time.replace("AM", "").replace("PM", "").trim();
+                String[] timeParts = timeOnly.split(":");
+                hour = Integer.parseInt(timeParts[0]);
+                minute = Integer.parseInt(timeParts[1]);
+                
+                // Convert to 24-hour format
+                if (isPM && hour != 12) {
+                    hour += 12;
+                } else if (!isPM && hour == 12) {
+                    hour = 0;
+                }
+            } else {
+                // Format: "09:00" or "14:30"
+                String[] timeParts = time.split(":");
+                hour = Integer.parseInt(timeParts[0]);
+                minute = Integer.parseInt(timeParts[1]);
+            }
+            
+            // Convert to total minutes (simple calculation)
+            return (year * 525600) + (month * 43800) + (day * 1440) + (hour * 60) + minute;
+        } catch (Exception e) {
+            System.err.println("Error parsing time: date=" + date + ", time=" + time + ", error=" + e.getMessage());
+            return 0;
+        }
+    }
+    
+    /**
+     * Checks if two time ranges overlap
+     * 
+     * @param start1 start time of first range
+     * @param end1 end time of first range
+     * @param start2 start time of second range
+     * @param end2 end time of second range
+     * @return true if ranges overlap
+     */
+    private boolean timesOverlap(int start1, int end1, int start2, int end2) {
+        return (start1 < end2 && end1 > start2);
+    }
+    
     // TEE-TIME MANAGMENT --------------------------------------------------
     
     /**
@@ -725,13 +1161,10 @@ public class Database implements DatabaseInterface {
                 pw.println(courseSettings.toFileString());
             }
             
-            // Save events - Note: Event persistence is handled by Event.saveToFile()
-            // This is a simplified version for Phase 1
-            try (PrintWriter pw = new PrintWriter(new FileWriter(EVENTS_FILE))) {
-                for (Event e : events) {
-                    pw.println(e.getId() + "," + e.getName());
-                }
-            }
+            // Note: Events are saved as part of reservations (Event extends Reservations)
+            // The events list is maintained in-memory for conflict checking only
+            // We don't save to events.txt anymore to avoid duplicates
+            // Pending status is stored in the isPending flag in reservations.txt
             
         } finally {
             readLock.unlock();
@@ -750,6 +1183,12 @@ public class Database implements DatabaseInterface {
     public void loadFromFile() throws IOException {
         writeLock.lock();
         try {
+            // Clear existing data to avoid duplicates
+            users.clear();
+            reservations.clear();
+            events.clear();
+            teeTimes.clear();
+            
             // loads users
             File usersFile = new File(USERS_FILE);
             if (usersFile.exists()) {
@@ -806,16 +1245,14 @@ public class Database implements DatabaseInterface {
                 }
             }
             
-            // load events (not done yet, left for latr)
-            File eventsFile = new File(EVENTS_FILE);
-            if (eventsFile.exists()) {
-                try (BufferedReader br = new BufferedReader(new FileReader(eventsFile))) {
-                    String line;
-                    while ((line = br.readLine()) != null) {
-                        // have to add this shit right fucking away
-                    }
+            // Rebuild events list from reservations (events are stored as part of reservations)
+            events.clear();
+            for (Reservations r : reservations) {
+                if (r instanceof Event) {
+                    events.add((Event) r);
                 }
             }
+            // Pending events are now part of reservations list with isPending flag
             
         } finally {
             writeLock.unlock();

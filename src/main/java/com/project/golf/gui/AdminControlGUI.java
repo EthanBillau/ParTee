@@ -2,24 +2,45 @@ package com.project.golf.gui;
 
 import com.project.golf.users.UserManager;
 
-import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
+import java.awt.event.*;
+
+import javax.swing.*;
 
 /**
  * AdminControlGUI.java
  *
- * Admin panel to start/stop server and add users.
+ * Administrative control panel for server and user management operations.
+ * Enables server start/stop, user creation, and event approval functions.
+ *
+ * Data structures: ServerController for server management, UserManager for user operations,
+ * JButton array for admin actions, JTextField/JPasswordField/JCheckBox for user creation form,
+ * JLabel for status display.
+ * Algorithm: Event-driven button callbacks for server control and user administration,
+ * form validation for new user creation, status indicator updates.
+ * Features: Server startup/shutdown, user account creation with role assignment,
+ * event approval interface, payment status management, admin operation logging.
+ *
+ * @author Ethan Billau (ebillau), L15
+ *
+ * @version December 7, 2025
  */
+    
 public class AdminControlGUI extends JFrame implements ActionListener {
-    private final ServerController controller;
-    private final UserManager manager;
+    private final ServerController controller;  // controller for server operations
+    private final UserManager manager;  // manager for user administration
 
-    private final JButton startButton, stopButton, addUserButton;
-    private final JLabel serverStatus;
-    private final JTextField usernameField, passwordField, firstNameField, lastNameField, emailField;
-    private final JCheckBox hasPaidCheck;
+    private final JButton startButton;  // button to start server
+    private final JButton stopButton;  // button to stop server
+    private final JButton addUserButton;  // button to add new user account
+    private final JButton manageEventsButton;  // button to manage event approvals
+    private final JLabel serverStatus;  // label showing server online/offline status
+    private final JTextField usernameField;  // input field for new user username
+    private final JTextField passwordField;  // input field for new user password
+    private final JTextField firstNameField;  // input field for new user first name
+    private final JTextField lastNameField;  // input field for new user last name
+    private final JTextField emailField;  // input field for new user email
+    private final JCheckBox hasPaidCheck;  // checkbox for new user payment status
 
     public AdminControlGUI(UserManager manager) {
         this.manager = manager;
@@ -54,6 +75,13 @@ public class AdminControlGUI extends JFrame implements ActionListener {
         serverStatus.setAlignmentX(CENTER_ALIGNMENT);
         panel.add(serverStatus);
         panel.add(Box.createVerticalStrut(20));
+        
+        // Manage Events Button
+        manageEventsButton = new JButton("Manage Pending Events");
+        manageEventsButton.addActionListener(this);
+        manageEventsButton.setAlignmentX(CENTER_ALIGNMENT);
+        panel.add(manageEventsButton);
+        panel.add(Box.createVerticalStrut(20));
 
         // Add User Panel
         JPanel userPanel = new JPanel(new GridLayout(6, 2, 5, 5));
@@ -65,6 +93,7 @@ public class AdminControlGUI extends JFrame implements ActionListener {
 
         userPanel.add(new JLabel("Password:"));
         passwordField = new JTextField();
+        passwordField.setText("TempPassword"); // Default temporary password
         userPanel.add(passwordField);
 
         userPanel.add(new JLabel("First Name:"));
@@ -100,6 +129,8 @@ public class AdminControlGUI extends JFrame implements ActionListener {
             stopServer();
         } else if (e.getSource() == addUserButton) {
             addUser();
+        } else if (e.getSource() == manageEventsButton) {
+            openEventManagementDialog();
         }
     }
 
@@ -124,15 +155,54 @@ public class AdminControlGUI extends JFrame implements ActionListener {
 
         boolean ok = manager.addUser(u, p, fn, ln, em, paid);
         if (ok) {
-            JOptionPane.showMessageDialog(this, "User added successfully!");
+            // Send welcome email to new user
+            new Thread(() -> {
+                String emailBody = String.format(
+                    "Welcome to ParTee Golf!\n\n" +
+                    "Your account has been created with the following information:\n\n" +
+                    "Username: %s\n" +
+                    "Temporary Password: %s\n" +
+                    "First Name: %s\n" +
+                    "Last Name: %s\n" +
+                    "Email: %s\n\n" +
+                    "IMPORTANT: For security reasons, you must change your password when you first log in.\n\n" +
+                    "You can now log in to the golf course reservation system at your convenience.\n\n" +
+                    "Thank you,\n" +
+                    "ParTee Golf Team",
+                    u, p, fn, ln, em
+                );
+                
+                boolean emailSent = com.project.golf.utils.EmailSender.sendEmail(
+                    em,
+                    "Welcome to ParTee Golf - Account Created",
+                    emailBody
+                );
+                
+                SwingUtilities.invokeLater(() -> {
+                    if (emailSent) {
+                        JOptionPane.showMessageDialog(this, 
+                            "User added successfully!\nWelcome email sent to " + em);
+                    } else {
+                        JOptionPane.showMessageDialog(this, 
+                            "User added successfully!\nHowever, email could not be sent.");
+                    }
+                });
+            }).start();
+            
             usernameField.setText("");
-            passwordField.setText("");
+            passwordField.setText("TempPassword");
             firstNameField.setText("");
             lastNameField.setText("");
             emailField.setText("");
             hasPaidCheck.setSelected(false);
         } else {
-            JOptionPane.showMessageDialog(this, "Failed to add user (username may exist).", "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(this,
+                    "Failed to add user (username may exist).",
+                    "Error", JOptionPane.ERROR_MESSAGE);
         }
+    }
+    
+    private void openEventManagementDialog() {
+        new EventApprovalGUI(this).setVisible(true);
     }
 }

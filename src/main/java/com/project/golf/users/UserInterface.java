@@ -3,10 +3,16 @@ package com.project.golf.users;
 /**
  * UserInterface.java
  * 
- * Interface defining the properties and actions for a user in the system.
- * Provides methods for getting/setting user information and file serialization.
+ * Interface defining user account properties and operations.
+ * Specifies contracts for user information access and file serialization.
+ * 
+ * Data structures: User profile fields (username, password, name, email, payment/admin status).
+ * Algorithm: Simple property accessor pattern with serialization support.
+ * Features: User data access, profile modification, payment status tracking, admin role designation,
+ * file-based persistence serialization.
  * 
  * @author Connor Landzettel (clandzet), L15
+ *
  * @version November 20, 2025
  */
 

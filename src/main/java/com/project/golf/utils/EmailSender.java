@@ -2,22 +2,32 @@ package com.project.golf.utils;
 
 import javax.mail.*;
 import javax.mail.internet.*;
+
 import java.util.Properties;
 
 /**
- * EmailSender
+ * EmailSender.java
  * 
- * Utility class for sending emails from the parteesignup@gmail.com account.
- * Uses JavaMail API to send automated emails to users requesting account access.
+ * Utility class for sending automated emails via JavaMail API.
+ * Sends account access request and verification emails from parteesignup@gmail.com.
  *
- * @author Nikhil Kodali (kodali3), Ethan Billau (ebillau)
+ * Data structures: Static final String constants for SMTP configuration (host, port,
+ * credentials), Properties for JavaMail session setup.
+ * Algorithm: JavaMail Session creation with SMTP authentication, Message composition,
+ * Transport connection and send over TLS-encrypted SMTP.
+ * Features: Account request email delivery, exception handling with return status,
+ * Gmail SMTP integration, TLS security support.
+ *
+ * @author Nikhil Kodali (kodali3), Ethan Billau (ebillau), L15
+ *
+ * @version December 7, 2025
  */
 public class EmailSender {
     
-    private static final String FROM_EMAIL = "parteesignup@gmail.com";
-    private static final String FROM_PASSWORD = "gpmc zpgc dekm anxd";
-    private static final String SMTP_HOST = "smtp.gmail.com";
-    private static final String SMTP_PORT = "587";
+    private static final String FROM_EMAIL = "parteesignup@gmail.com";  // sender email address
+    private static final String FROM_PASSWORD = "gpmc zpgc dekm anxd";  // Gmail app-specific password
+    private static final String SMTP_HOST = "smtp.gmail.com";  // Gmail SMTP server hostname
+    private static final String SMTP_PORT = "587";  // Gmail SMTP TLS port number
     
     /**
      * Sends an email from parteesignup@gmail.com to the specified recipient.
@@ -27,11 +37,14 @@ public class EmailSender {
      * @param body The email body content
      * @return true if email was sent successfully, false otherwise
      */
+
     public static boolean sendEmail(String toEmail, String subject, String body) {
+
         /**
          * Configure SMTP server properties for Gmail.
          * Uses TLS encryption on port 587 for secure email transmission.
          */
+
         Properties props = new Properties();
         props.put("mail.smtp.auth", "true");
         props.put("mail.smtp.starttls.enable", "true");
@@ -43,6 +56,7 @@ public class EmailSender {
          * Create authenticated session with Gmail SMTP server.
          * Uses the FROM_EMAIL and FROM_PASSWORD credentials.
          */
+
         Session session = Session.getInstance(props, new Authenticator() {
             @Override
             protected PasswordAuthentication getPasswordAuthentication() {
@@ -51,10 +65,12 @@ public class EmailSender {
         });
         
         try {
+
             /**
              * Construct the email message with sender, recipient, subject, and body.
              * Uses MimeMessage for standard email format compatibility.
              */
+
             Message message = new MimeMessage(session);
             message.setFrom(new InternetAddress(FROM_EMAIL));
             message.setRecipients(Message.RecipientType.TO, InternetAddress.parse(toEmail));
@@ -90,7 +106,10 @@ public class EmailSender {
      */
     public static boolean sendHelloWorldEmail(String toEmail) {
         String subject = "Welcome to Par-Tee Golf Reservation System";
-        String body = "Thank you for chosing the ParTee Golf Reservation software, your account must be verified by the country club before you will be able to login and create/access your reservations. Please respond with your full name, and we will create your account and send back the details.";
+        String body = "Thank you for choosing the ParTee Golf Reservation software, " +
+                "your account must be verified by the country club before you will " +
+                "be able to login and create/access your reservations. Please respond with " +
+                "your preferred username, full name, and we will create your account and send back the details.";
         return sendEmail(toEmail, subject, body);
     }
     
@@ -106,21 +125,17 @@ public class EmailSender {
      * @param reservationId The unique reservation ID
      * @return true if email was sent successfully, false otherwise
      */
-    public static boolean sendCalendarInvite(String toEmail, String date, String time, int hole, int partySize, String reservationId) {
+    public static boolean sendCalendarInvite(String toEmail, String date, String time,
+                                              int hole, int partySize, String reservationId) {
         try {
-            System.out.println("DEBUG: Starting to send calendar invite to: " + toEmail);
-            System.out.println("DEBUG: Date: " + date + ", Time: " + time + ", Hole: " + hole);
-            
             /**
              * Test internet connectivity before attempting to send.
              * Check if we can resolve the Gmail SMTP server.
              */
             try {
                 java.net.InetAddress.getByName(SMTP_HOST);
-                System.out.println("DEBUG: Successfully resolved " + SMTP_HOST);
             } catch (java.net.UnknownHostException e) {
-                System.err.println("ERROR: Cannot reach " + SMTP_HOST + ". Check your internet connection.");
-                System.err.println("Email sending requires an active internet connection.");
+                System.err.println("Cannot reach " + SMTP_HOST + ". Check your internet connection.");
                 return false;
             }
             
@@ -133,7 +148,6 @@ public class EmailSender {
             String day = dateParts[1].length() == 1 ? "0" + dateParts[1] : dateParts[1];
             String year = dateParts[2];
             String dateFormatted = year + month + day;
-            System.out.println("DEBUG: Formatted date: " + dateFormatted);
             
             /**
              * Convert time to 24-hour format for iCalendar.
@@ -145,7 +159,7 @@ public class EmailSender {
             // Calculate end time (1 hour later)
             int startHour = Integer.parseInt(timeFormatted.substring(0, 2));
             int endHour = (startHour + 1) % 24;
-            String endTimeFormatted = "%02d".formatted(endHour) + timeFormatted.substring(2);
+            String endTimeFormatted = String.format("%02d", endHour) + timeFormatted.substring(2);
             String endDateTime = dateFormatted + "T" + endTimeFormatted + "00";
             
             /**
@@ -172,7 +186,7 @@ public class EmailSender {
             icsContent.append("SEQUENCE:0\r\n");
             icsContent.append("END:VEVENT\r\n");
             icsContent.append("END:VCALENDAR\r\n");
-            
+
             /**
              * Create email with calendar attachment.
              * Uses multipart message to include both text and calendar data.
@@ -220,7 +234,6 @@ public class EmailSender {
             message.setContent(multipart);
             
             Transport.send(message);
-            System.out.println("Calendar invite sent successfully to: " + toEmail);
             return true;
             
         } catch (Exception e) {
@@ -248,7 +261,7 @@ public class EmailSender {
             hour = 0;
         }
         
-        return "%02d%s".formatted(hour, minutePart);
+        return String.format("%02d%s", hour, minutePart);
     }
     
     /**

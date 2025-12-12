@@ -1,11 +1,30 @@
 package com.project.golf.events;
 
-import com.project.golf.reservation.Reservations;
+import com.project.golf.reservation.*;
+
+/**
+ * Event.java
+ *
+ * Represents a multi-day or timed event reservation extending the Reservations class.
+ * Adds end date and end time fields to capture event duration beyond single tee times.
+ *
+ * Data structures: Extends Reservations base class, adds String endDate and endTime fields,
+ * maintains parent reservation data (id, username, date, time, partySize, teeBox, price).
+ * Algorithm: Extends composition pattern from Reservations, validates end date/time
+ * format consistency with parent class during construction.
+ * Features: Event duration tracking, file serialization compatibility, comparison operations,
+ * string representation for UI display.
+ *
+ * @author Ethan Billau (ebillau), L15
+ *
+ * @version December 7, 2025
+ */
+
 
 public class Event extends Reservations implements EventInterface {
 
-    private String endDate;
-    private String endTime;
+    private String endDate;  // end date of the event in format matching system date standard
+    private String endTime;  // end time of the event in format matching system time standard
 
     public Event(String reservationId, String username, String date,
                  String time, int partySize, String teeBox, double price,
@@ -72,9 +91,9 @@ public class Event extends Reservations implements EventInterface {
      */
     @Override
     public String toFileString() {
-        return "EVENT,%s,%s,%s,%s,%d,%s,%.2f,%b,%s,%s".formatted(
+        return String.format("EVENT,%s,%s,%s,%s,%d,%s,%.2f,%b,%s,%s,%b",
                 getReservationId(), getUsername(), getDate(), getTime(),
                 getPartySize(), getTeeBox(), getPrice(), getIsPaid(),
-                endDate, endTime);
+                endDate, endTime, isPending());
     }
 }

@@ -5,7 +5,12 @@ import java.io.IOException;
 /**
  * ClientInterface.java
  * 
- * Interface for the client class
+ * Interface defining client-side network operations and server communication contracts.
+ * Specifies methods for connection management and request sending with pipe-delimited protocol.
+ * 
+ * Data structures: Connection interfaces (connect/disconnect), request transmission methods.
+ * Algorithm: Network communication via sockets with serialized request/response handling.
+ * Features: Server connection management, request sending, response handling, I/O exception propagation.
  * 
  * @author Ethan Billau (ebillau), L15
  * 
@@ -27,12 +32,13 @@ public interface ClientInterface {
     String sendCommand(String command) throws IOException;
 
     // Convenience API (examples - implemented in Client.java)
-    boolean login(String username, String password) throws IOException;
+    String login(String username, String password) throws IOException;
     String listTeeTimes(String date) throws IOException; // returns compact list string
     String bookTeeTime(String teeTimeId, int partySize, String username) throws IOException;
     String listEvents() throws IOException;
     String bookEvent(String eventId, int partySize, String username) throws IOException;
     String getReservations(String username) throws IOException;
     String cancelReservation(String reservationId) throws IOException;
-    boolean addUser(String username, String password, String firstName, String lastName, String email, boolean hasPaid) throws IOException;
+    boolean addUser(String username, String password, String firstName,
+                    String lastName, String email, boolean hasPaid) throws IOException;
 }

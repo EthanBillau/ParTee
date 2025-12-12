@@ -3,11 +3,17 @@ package com.project.golf.settings;
 /**
  * CourseSettingsInterface.java
  * 
- * Interface for course configuration and operational settings.
- * Stores information that the server uses to manage the golf course,
- * such as operating hours, default pricing, and course details.
+ * Interface defining golf course configuration and business rule parameters.
+ * Specifies contracts for operational settings management and pricing configuration.
+ *
+ * Data structures: Course properties (hours, pricing, party size limits), day-of-week
+ * settings HashMap for schedule customization.
+ * Algorithm: Configuration property accessor pattern with day-specific overrides.
+ * Features: Operating hours definition, pricing policy management, party size constraints,
+ * advance booking policies, day-of-week schedule customization.
  *
  * @author Nikhil Kodali (kodali3), L15
+ *
  * @version November 9, 2025
  */
 

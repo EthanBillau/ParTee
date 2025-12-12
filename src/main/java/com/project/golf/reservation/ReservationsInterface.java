@@ -3,10 +3,17 @@ package com.project.golf.reservation;
 /**
  * ReservationsInterface.java
  *
- * Interface for Reservations class
- * Defines all methods for managing golf course reservations
+ * Interface defining golf course reservation data and operations.
+ * Specifies contracts for tee time reservation management and state tracking.
  *
+ * Data structures: Reservation details (ID, user, date, time, party size, tee box, price),
+ * payment and approval state flags.
+ * Algorithm: State tracking pattern with getter/setter accessors.
+ * Features: Reservation property access, payment status management, approval state tracking,
+ * reservation comparison and serialization.
+ * 
  * @author Ethan Billau (ethanbillau), L15
+ *
  * @version November 13, 2025
  */
 

@@ -3,10 +3,17 @@ package com.project.golf.server;
 import java.io.IOException;
 
 /**
- * Interface for a multi-client server that handles incoming connections.
- * Defines basic lifecycle methods and port access.
+ * ServerInterface.java
+ * 
+ * Interface defining multi-client server lifecycle and connection management.
+ * Specifies contracts for server startup, shutdown, and port configuration.
+ *
+ * Data structures: Port configuration, server socket management.
+ * Algorithm: Server lifecycle pattern with start/stop operations and port management.
+ * Features: Server startup and shutdown, port configuration access, multi-client request handling.
  * 
  * @author Ethan Billau (ethanbillau), L15
+ *
  * @version November 21, 2025
  */
 

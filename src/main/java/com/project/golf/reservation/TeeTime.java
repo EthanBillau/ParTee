@@ -5,29 +5,34 @@ import java.util.ArrayList;
 /**
  * TeeTime.java
  * 
- * Represents a specific tee time slot on the golf course. Each tee time
- * has a date, time, tee box, and capacity. Manages reservations for that
- * specific time slot in a thread-safe manner.
+ * Represents a specific tee time slot with capacity and reservation management.
+ * Tracks available golf course times with booking capacity and pricing.
  *
- * @author Anoushka Chakravarty (chakr181)
+ * Data structures: Final String fields for teeTimeId, date, time, teeBox,
+ * final int maxPartySize, double pricePerPerson, ArrayList of Reservations for bookings.
+ * Static int teeTimeCounter for ID generation. 
+ * Algorithm: Counter-based ID generation, ArrayList for reservation storage,
+ * capacity checking against maxPartySize, price calculation per party size.
+ * Features: Tee time creation and tracking, reservation management, capacity validation,
+ * pricing calculation, ID generation, file serialization.
+ *
+ * @author Anoushka Chakravarty (chakr181), L15
+ *
  * @version November 9, 2025
  */
 
 public class TeeTime implements TeeTimeInterface {
     
-    // Counter for generating unique IDs
-    private static int teeTimeCounter = 1;
+    private static int teeTimeCounter = 1;  // counter for generating unique tee time IDs
     
-    // Tee time properties
-    private final String teeTimeId;
-    private final String date;
-    private final String time;
-    private final String teeBox;
-    private final int maxPartySize;
-    private double pricePerPerson;
+    private final String teeTimeId;  // unique identifier for this tee time slot
+    private final String date;  // date of the tee time in system date format
+    private final String time;  // time of the tee time in system time format (HH:MM)
+    private final String teeBox;  // tee box or hole designation (e.g., "Hole 1")
+    private final int maxPartySize;  // maximum number of golfers allowed for this time
+    private double pricePerPerson;  // price charged per golfer for this tee time
     
-    // Reservations for this tee time
-    private final ArrayList<Reservations> reservations;
+    private final ArrayList<Reservations> reservations;  // list of all reservations for this tee time
     
     /**
      * Constructor for TeeTime
@@ -235,8 +240,8 @@ public class TeeTime implements TeeTimeInterface {
     
     @Override
     public String toFileString() {
-        return "%s,%s,%s,%s,%d,%.2f".formatted(
-                teeTimeId, date, time, teeBox, maxPartySize, pricePerPerson);
+        return String.format("%s,%s,%s,%s,%d,%.2f",
+            teeTimeId, date, time, teeBox, maxPartySize, pricePerPerson);
     }
     
     /**
@@ -272,8 +277,8 @@ public class TeeTime implements TeeTimeInterface {
     
     @Override
     public String toString() {
-        return "TeeTime[%s] %s at %s - %s (Available: %d/%d, $%.2f/person)".formatted(
-                teeTimeId, date, time, teeBox, getAvailableSpots(), maxPartySize, pricePerPerson);
+        return String.format("TeeTime[%s] %s at %s - %s (Available: %d/%d, $%.2f/person)",
+            teeTimeId, date, time, teeBox, getAvailableSpots(), maxPartySize, pricePerPerson);
     }
     
     @Override

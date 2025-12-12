@@ -1,27 +1,40 @@
 package com.project.golf.gui;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
+
 /**
  * AccountBackgroundPanel.java
  *
- * Background panel for AccountOptionsGUI.
- * Keeps the image aspect ratio, shows the whole image ("contain"),
- * and chooses a preferred size based on children + image ratio.
+ * Background panel with aspect ratio preservation for AccountOptionsGUI.
+ * Scales image with "contain" mode keeping full image visible.
+ *
+ * Data structures: BufferedImage for background, static String constants
+ * for classpath and filesystem resource paths.
+ * Algorithm: Image loading with fallback chain, "contain" scaling mode
+ * maintaining aspect ratio, preferred size calculation based on children and image ratio.
+ * Features: Aspect ratio preservation, "contain" scaling mode, AccountOptionsGUI theming,
+ * multi-source image loading, custom layout sizing.
+ *
+ * @author Ethan Billau (ebillau), L15
+ *
+ * @version December 7, 2025
  */
-public class AccountBackgroundPanel extends JPanel {
-    private BufferedImage backgroundImage;
 
-    // Uses the same image as BackgroundPanel
+public class AccountBackgroundPanel extends JPanel {
+    private BufferedImage backgroundImage;  // loaded background image for account screen
+
+    // Classpath location for background image resource
     private static final String CLASSPATH_IMAGE =
             "/com/project/golf/gui/backgroundDarkest.jpg";
 
+    // Filesystem fallback paths for background image loading
     private static final String FILE_IMAGE_1 =
             "com/project/golf/gui/backgroundDarkest.jpg";
     private static final String FILE_IMAGE_2 =

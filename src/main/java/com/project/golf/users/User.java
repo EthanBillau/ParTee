@@ -1,25 +1,28 @@
 package com.project.golf.users;
-    
 /**
  * User.java
  *
- * User class representing a user in the system
- * Implements UserInterface
+ * Represents a user in the ParTee golf reservation system. Stores user
+ * information including username, password, name, email, payment status,
+ * and admin privileges. Implements UserInterface for abstraction.
+ *
+ * Data structures: String fields for user data, boolean flags for status
+ * Major features: User authentication, profile management, file serialization
  *
  * @author Ethan Billau (ebillau), Connor Landzettel (clandzet), L15
+ *
  * @version November 6, 2025
  */
 
 public class User implements UserInterface {
 
-    // Variables 
-    private String username;
-    private String password;
-    private String firstName;
-    private String lastName;
-    private String email;
-    private boolean hasPaid;
-    private boolean isAdmin = false;
+    private String username;           // username identifier for login
+    private String password;           // password for authentication
+    private String firstName;          // user's first name
+    private String lastName;           // user's last name
+    private String email;              // user's email address
+    private boolean hasPaid;           // whether user has paid membership fee
+    private boolean isAdmin = false;   // whether user has administrator privileges
 
     /**
      * Constructor for Users
@@ -145,8 +148,8 @@ public class User implements UserInterface {
     
     @Override
     public String toFileString() {
-        return "%s,%s,%s,%s,%s,%b,%b".formatted(
-                username, password, firstName, lastName, email, hasPaid, isAdmin);
+        return String.format("%s,%s,%s,%s,%s,%b,%b",
+            username, password, firstName, lastName, email, hasPaid, isAdmin);
     }
 
     /**
@@ -189,9 +192,9 @@ public class User implements UserInterface {
     
     @Override
     public String toString() {
-        return "User[%s] %s %s <%s> | Paid: %s | Role: %s".formatted(
-                username, firstName, lastName, email,
-                hasPaid ? "Yes" : "No",
-                isAdmin ? "Admin" : "Customer");
+        return String.format("User[%s] %s %s <%s> | Paid: %s | Role: %s",
+            username, firstName, lastName, email, 
+            hasPaid ? "Yes" : "No",
+            isAdmin ? "Admin" : "Customer");
     }
 }

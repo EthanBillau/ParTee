@@ -1,36 +1,36 @@
 package com.project.golf.gui;
 
-import com.project.golf.client.*;
 import com.project.golf.utils.EmailSender;
 
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.io.IOException;
 
 import javax.swing.*;
 
 /**
  * NoAccountGUI.java
  *
- * Shows when a customer does not have an account
- * Informs them to contact ParTEE to create one
+ * Displays when user lacks account authorization and handles account requests.
+ * Guides users to request account creation through email submission.
+ *
+ * Data structures: JButton for navigation and email submission, JTextField
+ * for email address input.
+ * Algorithm: Email validation and submission to admin system for account creation,
+ * UI switching between login and account request screens.
+ * Features: Account request submission, email validation, admin notification,
+ * return to login navigation, email-based access control integration.
  *
  * @author Connor Landzettel (clandzet), L15
  *
- * @version 12/4/2025
+ * @version December 4, 2025
  */
 
 public class NoAccountGUI extends JFrame implements ActionListener {
 
-    private static Client client;
-    private String currUsername;
-    private String serverHost = "localhost";
-    private int serverPort = 5050;
-
-    private JButton showLoginButton;
-    private JButton submitEmailButton;
-    private JTextField emailField;
+    private JButton showLoginButton;  // button to return to login screen
+    private JButton submitEmailButton;  // button to submit account request
+    private JTextField emailField;  // input field for requesting user email
 
     public NoAccountGUI() {
         setTitle("Golf Course Reservation System");
@@ -51,12 +51,6 @@ public class NoAccountGUI extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
-        client = new Client("localhost", 8080);
-        try {
-            client.connect("localhost", 8080);
-        } catch (Exception e) {
-        }
-
         SwingUtilities.invokeLater(() -> new NoAccountGUI());
     }
     
@@ -127,7 +121,7 @@ public class NoAccountGUI extends JFrame implements ActionListener {
         panel.setLayout(new BoxLayout(panel, BoxLayout.Y_AXIS));
         panel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JLabel title = new JLabel("Golf Registration");
+        JLabel title = new JLabel("Golf Registration Signup");
         title.setAlignmentX(CENTER_ALIGNMENT);
         title.setFont(new Font("Arial", Font.BOLD, 24));
         panel.add(title);

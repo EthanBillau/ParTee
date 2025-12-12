@@ -5,10 +5,18 @@ import java.util.ArrayList;
 /**
  * TeeTimeInterface.java
  * 
- * Interface for golf course tee time slots. A tee time represents a specific
- * time slot on a specific date when golfers can start their round.
+ * Interface defining golf course tee time slot management and reservation booking.
+ * Specifies contracts for tee time capacity and reservation operations.
  *
+ * Data structures: Tee time properties (ID, date, time, tee box, maxPartySize, price),
+ * ArrayList of reservations for bookings.
+ * Algorithm: Capacity validation with party size checking, ArrayList iteration
+ * for reservation management.
+ * Features: Tee time property access, reservation booking/cancellation, capacity validation,
+ * party size calculation, file serialization.
+ * 
  * @author Anoushka Chakravarty (chakr181), L15
+ *
  * @version November 9, 2025
  */
 

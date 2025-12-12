@@ -9,11 +9,19 @@ import java.util.Collections;
 import java.util.List;
 
 /**
- * Multi-client server that listens for connections and delegates requests to ServerWorker threads.
- * Implements ServerInterface and Runnable.
+ * Server.java
  *
- * Thread safety note: Worker threads are interrupted on server stop; individual workers should handle interruption.
- * @author Ethan Billau (ebillau)
+ * Multi-client server for ParTee golf reservation system.
+ * Listens for incoming client connections and spawns ServerWorker threads for handling.
+ * Manages graceful shutdown with proper resource cleanup and thread termination.
+ *
+ * Data structures: ServerSocket for listening, List of Threads for workers,
+ * List of Sockets for client management.
+ * Algorithm: Thread-per-client pattern with synchronized collections for thread safety.
+ * Features: Multi-threaded client handling, graceful shutdown, connection management.
+ *
+ * @author Ethan Billau (ebillau), L15
+ *
  * @version Nov 24, 2025
  */
 public class Server implements ServerInterface, Runnable {

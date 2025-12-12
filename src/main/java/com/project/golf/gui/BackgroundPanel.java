@@ -1,35 +1,50 @@
 package com.project.golf.gui;
 
-import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
-import javax.imageio.ImageIO;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
 
+import javax.imageio.ImageIO;
+import javax.swing.*;
+
 /**
  * BackgroundPanel.java
  *
- * A custom JPanel that displays a resizable background image.
- * - The image ALWAYS COVERS the whole panel (no black bars).
- * - The panel DOES NOT change the window size; frames control their own size.
+ * Custom JPanel with full-coverage scaled background image rendering.
+ * Loads from classpath resources with filesystem fallbacks for compatibility.
+ *
+ * Data structures: BufferedImage for background, static String constants
+ * for resource paths (classpath and filesystem alternatives).
+ * Algorithm: Image loading with fallback chain (classpath → filesystem paths),
+ * scaling with aspect ratio preservation, high-quality rendering hints.
+ * Features: Custom background image rendering, transparent overlay support,
+ * aspect ratio preservation, multi-source image loading, IDE compatibility.
+ *
+ * @author Ethan Billau (ebillau), L15
+ *
+ * @version December 7, 2025
  */
-public class BackgroundPanel extends JPanel {
-    private BufferedImage backgroundImage;
 
-    // Classpath location (recommended)
+public class BackgroundPanel extends JPanel {
+    private BufferedImage backgroundImage;  // loaded background image for display
+
+    // Classpath location for background image resource
     private static final String CLASSPATH_IMAGE =
             "/com/project/golf/gui/backgroundDarkest.jpg";
 
-    // File-system fallbacks (so it still works when run from some IDEs)
+    // Filesystem fallback paths for background image loading
     private static final String FILE_IMAGE_1 =
             "com/project/golf/gui/backgroundDarkest.jpg";
     private static final String FILE_IMAGE_2 =
             "backgroundDarkest.jpg";
 
     public BackgroundPanel() {
-        this(null);
+        super();
+        loadBackgroundImage();
+        setOpaque(true);
+        setBackground(Color.BLACK);
     }
 
     public BackgroundPanel(LayoutManager layout) {
