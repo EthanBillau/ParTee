@@ -1,9 +1,11 @@
 package com.project.golf.server;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
 import java.net.SocketException;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -108,7 +110,15 @@ public class Server implements ServerInterface, Runnable {
         try (ServerSocket ss = new ServerSocket(port)) {
             this.serverSocket = ss;
             running = true;
-            System.out.println("Server listening on port " + port);
+            String boundHost = ss.getInetAddress().getHostAddress();
+            if ("0.0.0.0".equals(boundHost) || "::".equals(boundHost)) {
+                try {
+                    boundHost = InetAddress.getLocalHost().getHostAddress();
+                } catch (UnknownHostException e) {
+                    boundHost = "localhost"; // fallback if hostname lookup fails
+                }
+            }
+            System.out.println("Server listening on " + boundHost + ":" + port);
 
             while (running) {
                 try {

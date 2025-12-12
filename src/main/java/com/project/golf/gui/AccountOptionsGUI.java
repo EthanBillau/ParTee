@@ -2,6 +2,7 @@ package com.project.golf.gui;
 
 import com.project.golf.client.*;
 import com.project.golf.users.*;
+import com.project.golf.utils.ServerConfig;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -261,9 +262,12 @@ public class AccountOptionsGUI extends JFrame implements ActionListener {
     }
 
     public static void main(String[] args) {
-        client = new Client("localhost", 5050);
+        String host = ServerConfig.getServerHost();
+        int port = ServerConfig.getServerPort();
+
+        client = new Client(host, port);
         try {
-            client.connect("localhost", 5050);
+            client.connect(host, port);
         } catch (Exception e) {
             // ignore connection errors in standalone testing
         }

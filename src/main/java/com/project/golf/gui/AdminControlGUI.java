@@ -1,6 +1,7 @@
 package com.project.golf.gui;
 
 import com.project.golf.users.UserManager;
+import com.project.golf.utils.ServerConfig;
 
 import java.awt.*;
 import java.awt.event.*;
@@ -136,7 +137,8 @@ public class AdminControlGUI extends JFrame implements ActionListener {
 
     private void startServer() {
         startButton.setEnabled(false);
-        controller.startServer(5050, () -> serverStatus.setText("Server: RUNNING"));
+        int port = ServerConfig.getServerPort();
+        controller.startServer(port, () -> serverStatus.setText("Server: RUNNING on " + port));
     }
 
     private void stopServer() {
