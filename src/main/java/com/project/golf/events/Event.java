@@ -72,7 +72,7 @@ public class Event extends Reservations implements EventInterface {
      */
     @Override
     public String toFileString() {
-        return String.format("EVENT,%s,%s,%s,%s,%d,%s,%.2f,%b,%s,%s",
+        return "EVENT,%s,%s,%s,%s,%d,%s,%.2f,%b,%s,%s".formatted(
                 getReservationId(), getUsername(), getDate(), getTime(),
                 getPartySize(), getTeeBox(), getPrice(), getIsPaid(),
                 endDate, endTime);

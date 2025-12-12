@@ -94,7 +94,7 @@ public class AdminLoginGUI extends JFrame implements ActionListener {
                 passwordField.setEchoChar((char) 0); // Show plaintext
                 showHideButton.setText("Hide");
             } else {
-                passwordField.setEchoChar('•'); // Hide with bullets
+                passwordField.setEchoChar('*'); // Hide with asterisks
                 showHideButton.setText("Show");
             }
         }

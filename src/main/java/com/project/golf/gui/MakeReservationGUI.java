@@ -80,7 +80,7 @@ public class MakeReservationGUI extends JFrame implements ActionListener {
         topPanel.setOpaque(false);
         topPanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 40));
 
-        backButton = new JButton("← Back");
+        backButton = new JButton("<- Back");
         backButton.setFont(new Font("Arial", Font.BOLD, 14));
         backButton.setBackground(Color.WHITE);
         backButton.setFocusPainted(false);
@@ -306,7 +306,7 @@ public class MakeReservationGUI extends JFrame implements ActionListener {
                 if (hour == 17 && minute > 0) break;
                 String period = hour < 12 ? "AM" : "PM";
                 int displayHour = hour <= 12 ? hour : hour - 12;
-                slots[index++] = String.format("%d:%02d %s", displayHour, minute, period);
+                slots[index++] = "%d:%02d %s".formatted(displayHour, minute, period);
             }
         }
 
@@ -456,7 +456,7 @@ public class MakeReservationGUI extends JFrame implements ActionListener {
                     String action = editingReservationId != null ? "updated" : "confirmed";
                     
                     JOptionPane.showMessageDialog(this,
-                            String.format("Event Reservation %s!\n\nReservation ID: %s\nDate: %s\nStart Time: %s\nEnd Time: %s\nAll Holes\nParty Size: 200%s\nDuration: %d hours",
+                            "Event Reservation %s!\n\nReservation ID: %s\nDate: %s\nStart Time: %s\nEnd Time: %s\nAll Holes\nParty Size: 200%s\nDuration: %d hours".formatted(
                                     action, reservationId, date, time, endTimeStr, cartInfo, hours),
                             "Success",
                             JOptionPane.INFORMATION_MESSAGE);
@@ -504,8 +504,8 @@ public class MakeReservationGUI extends JFrame implements ActionListener {
                 String action = editingReservationId != null ? "updated" : "confirmed";
                 String calendarInfo = sendCalendarInvite ? "\nCalendar invite will be sent to your email." : "";
                 JOptionPane.showMessageDialog(this,
-                    String.format("Reservation %s!\n\nReservation ID: %s\nDate: %s\nTime: %s\nHole: %d\nParty Size: %d%s%s",
-                        action, reservationId, date, time, selectedHole, partySize, cartInfo, calendarInfo),
+                        "Reservation %s!\n\nReservation ID: %s\nDate: %s\nTime: %s\nHole: %d\nParty Size: %d%s%s".formatted(
+                                action, reservationId, date, time, selectedHole, partySize, cartInfo, calendarInfo),
                     "Success",
                     JOptionPane.INFORMATION_MESSAGE);
                 

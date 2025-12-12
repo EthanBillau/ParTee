@@ -145,7 +145,7 @@ public class EmailSender {
             // Calculate end time (1 hour later)
             int startHour = Integer.parseInt(timeFormatted.substring(0, 2));
             int endHour = (startHour + 1) % 24;
-            String endTimeFormatted = String.format("%02d", endHour) + timeFormatted.substring(2);
+            String endTimeFormatted = "%02d".formatted(endHour) + timeFormatted.substring(2);
             String endDateTime = dateFormatted + "T" + endTimeFormatted + "00";
             
             /**
@@ -248,7 +248,7 @@ public class EmailSender {
             hour = 0;
         }
         
-        return String.format("%02d%s", hour, minutePart);
+        return "%02d%s".formatted(hour, minutePart);
     }
     
     /**

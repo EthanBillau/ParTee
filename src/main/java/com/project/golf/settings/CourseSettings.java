@@ -310,8 +310,8 @@ public class CourseSettings implements CourseSettingsInterface {
     
     @Override
     public String toString() {
-        return String.format("CourseSettings[%s | Hours: %s-%s | $%.2f | %d tee boxes | Book %d days ahead]",
-                           courseName, openingTime, closingTime, defaultPricePerPerson,
-                           numberOfTeeBoxes, advanceBookingDays);
+        return "CourseSettings[%s | Hours: %s-%s | $%.2f | %d tee boxes | Book %d days ahead]".formatted(
+                courseName, openingTime, closingTime, defaultPricePerPerson,
+                numberOfTeeBoxes, advanceBookingDays);
     }
 }

@@ -159,9 +159,9 @@ public class ServerWorker implements Runnable {
         } 
         StringBuilder sb = new StringBuilder();
         for (TeeTime tt : list) {
-            sb.append(String.format("%s;%s;%s;%d;%d;%.2f|",
+            sb.append("%s;%s;%s;%d;%d;%.2f|".formatted(
                     tt.getTeeTimeId(), tt.getDate(), tt.getTime(), tt.getAvailableSpots(),
-                                    tt.getMaxPartySize(), tt.getPricePerPerson()));
+                    tt.getMaxPartySize(), tt.getPricePerPerson()));
         }
         // Remove trailing |
         if (sb.length() > 0) {
@@ -223,7 +223,7 @@ public class ServerWorker implements Runnable {
         }
         StringBuilder sb = new StringBuilder();
         for (Event e : events) {
-            sb.append(String.format("%s;%s;%s %s;%s %s;%d;%s;%.2f|",
+            sb.append("%s;%s;%s %s;%s %s;%d;%s;%.2f|".formatted(
                     e.getId(), e.getName(),
                     e.getDate(), e.getTime(),
                     e.getEndDate(), e.getEndTime(),

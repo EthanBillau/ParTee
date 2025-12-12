@@ -59,19 +59,19 @@ public class Client implements ClientInterface {
 
     @Override
     public boolean login(String username, String password) throws IOException {
-        String resp = sendCommand(String.format("LOGIN|%s|%s", username, password));
+        String resp = sendCommand("LOGIN|%s|%s".formatted(username, password));
         return resp != null && resp.startsWith("RESP|OK");
     }
 
     @Override
     public String listTeeTimes(String date) throws IOException {
-        String resp = sendCommand(String.format("LIST_TT|%s", date));
+        String resp = sendCommand("LIST_TT|%s".formatted(date));
         return resp;
     }
 
     @Override
     public String bookTeeTime(String teeTimeId, int partySize, String username) throws IOException {
-        String resp = sendCommand(String.format("BOOK_TT|%s|%d|%s", teeTimeId, partySize, username));
+        String resp = sendCommand("BOOK_TT|%s|%d|%s".formatted(teeTimeId, partySize, username));
         return resp;
     }
 
@@ -82,22 +82,22 @@ public class Client implements ClientInterface {
 
     @Override
     public String bookEvent(String eventId, int partySize, String username) throws IOException {
-        return sendCommand(String.format("BOOK_EVENT|%s|%d|%s", eventId, partySize, username));
+        return sendCommand("BOOK_EVENT|%s|%d|%s".formatted(eventId, partySize, username));
     }
 
     @Override
     public String getReservations(String username) throws IOException {
-        return sendCommand(String.format("GET_RESERVATIONS|%s", username));
+        return sendCommand("GET_RESERVATIONS|%s".formatted(username));
     }
 
     @Override
     public String cancelReservation(String reservationId) throws IOException {
-        return sendCommand(String.format("CANCEL_RESERVATION|%s", reservationId));
+        return sendCommand("CANCEL_RESERVATION|%s".formatted(reservationId));
     }
 
     @Override
     public boolean addUser(String username, String password, String firstName, String lastName, String email, boolean hasPaid) throws IOException {
-        String resp = sendCommand(String.format("ADD_USER|%s|%s|%s|%s|%s|%b",
+        String resp = sendCommand("ADD_USER|%s|%s|%s|%s|%s|%b".formatted(
                 username, password, firstName, lastName, email, hasPaid));
         return resp != null && resp.startsWith("RESP|OK");
     }

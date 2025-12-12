@@ -208,7 +208,7 @@ public class Reservations implements ReservationsInterface {
      */
     @Override
     public String toFileString() {
-        return String.format("%s,%s,%s,%s,%d,%s,%.2f,%b",
+        return "%s,%s,%s,%s,%d,%s,%.2f,%b".formatted(
                 reservationId, username, date, time, partySize, teeBox, price, isPaid);
     }
 
@@ -266,8 +266,15 @@ public class Reservations implements ReservationsInterface {
      */
     @Override
     public String toString() {
-        return String.format("Reservation ID: %s\nUsername: %s\nDate: %s\nTime: %s\n"
-                + "Party Size: %d\nTee Box: %s\nPrice: $%.2f\nPaid: %s",
+        return ("""
+                Reservation ID: %s
+                Username: %s
+                Date: %s
+                Time: %s
+                Party Size: %d
+                Tee Box: %s
+                Price: $%.2f
+                Paid: %s""").formatted(
                 reservationId, username, date, time, partySize,
                 teeBox, price, isPaid ? "Yes" : "No");
     }

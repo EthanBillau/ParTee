@@ -145,8 +145,8 @@ public class User implements UserInterface {
     
     @Override
     public String toFileString() {
-        return String.format("%s,%s,%s,%s,%s,%b,%b",
-            username, password, firstName, lastName, email, hasPaid, isAdmin);
+        return "%s,%s,%s,%s,%s,%b,%b".formatted(
+                username, password, firstName, lastName, email, hasPaid, isAdmin);
     }
 
     /**
@@ -189,9 +189,9 @@ public class User implements UserInterface {
     
     @Override
     public String toString() {
-        return String.format("User[%s] %s %s <%s> | Paid: %s | Role: %s",
-            username, firstName, lastName, email, 
-            hasPaid ? "Yes" : "No",
-            isAdmin ? "Admin" : "Customer");
+        return "User[%s] %s %s <%s> | Paid: %s | Role: %s".formatted(
+                username, firstName, lastName, email,
+                hasPaid ? "Yes" : "No",
+                isAdmin ? "Admin" : "Customer");
     }
 }

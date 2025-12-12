@@ -235,8 +235,8 @@ public class TeeTime implements TeeTimeInterface {
     
     @Override
     public String toFileString() {
-        return String.format("%s,%s,%s,%s,%d,%.2f",
-            teeTimeId, date, time, teeBox, maxPartySize, pricePerPerson);
+        return "%s,%s,%s,%s,%d,%.2f".formatted(
+                teeTimeId, date, time, teeBox, maxPartySize, pricePerPerson);
     }
     
     /**
@@ -272,8 +272,8 @@ public class TeeTime implements TeeTimeInterface {
     
     @Override
     public String toString() {
-        return String.format("TeeTime[%s] %s at %s - %s (Available: %d/%d, $%.2f/person)",
-            teeTimeId, date, time, teeBox, getAvailableSpots(), maxPartySize, pricePerPerson);
+        return "TeeTime[%s] %s at %s - %s (Available: %d/%d, $%.2f/person)".formatted(
+                teeTimeId, date, time, teeBox, getAvailableSpots(), maxPartySize, pricePerPerson);
     }
     
     @Override

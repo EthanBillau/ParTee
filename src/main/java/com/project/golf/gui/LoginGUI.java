@@ -6,7 +6,7 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
-
+import java.util.concurrent.ThreadLocalRandom;
 import javax.swing.*;
 
 /**
@@ -132,7 +132,7 @@ public class LoginGUI extends JFrame implements ActionListener {
                 passwordField.setEchoChar((char) 0); // Removes masking
                 showHideButton.setText("Hide");
             } else {
-                passwordField.setEchoChar('•'); // Mask with bullets
+                passwordField.setEchoChar('*'); // Mask with asterisks
                 showHideButton.setText("Show");
             }
         } else if (e.getSource() == forgotPasswordButton) {
@@ -199,7 +199,7 @@ public class LoginGUI extends JFrame implements ActionListener {
              * Generate 6-digit one-time code.
              * Store it for validation when user tries to log in.
              */
-            oneTimeCode = String.format("%06d", (int)(Math.random() * 1000000));
+            oneTimeCode = "%06d".formatted((int) (ThreadLocalRandom.current().nextDouble() * 1000000));
             oneTimeCodeUsername = username;
             
             /**
@@ -218,8 +218,9 @@ public class LoginGUI extends JFrame implements ActionListener {
             SwingUtilities.invokeLater(() -> {
                 if (emailSent) {
                     JOptionPane.showMessageDialog(this,
-                        "A one-time login code has been sent to your email.\n" +
-                        "Please check your email and enter the code in the password field.",
+                        """
+                        A one-time login code has been sent to your email.
+                        Please check your email and enter the code in the password field.""",
                         "Code Sent",
                         JOptionPane.INFORMATION_MESSAGE);
                     usernameField.setText(username);

@@ -321,8 +321,7 @@ public class ManageReservationsGUI extends JFrame {
             String teeBoxDisplay = r.getTeeBox();
             int partySizeDisplay = r.getPartySize();
 
-            if (r instanceof com.project.golf.events.Event) {
-                com.project.golf.events.Event e = (com.project.golf.events.Event) r;
+            if (r instanceof com.project.golf.events.Event e) {
 
                 teeBoxDisplay = "EVENT (All Holes)";
                 partySizeDisplay = 200;
